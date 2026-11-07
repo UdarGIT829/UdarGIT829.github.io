@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Viraat Udar · Python developer</title>
+<meta name="description" content="Viraat Udar: M.S. Computer Science (CSU Fullerton, 2026). Python developer building data pipelines, APIs and analysis tools, with a background in clinical-trial data management and genomics research.">
+<meta property="og:title" content="Viraat Udar · Python developer">
+<meta property="og:description" content="Data pipelines, APIs and analysis tools; clinical-trial data management; genomics research. M.S. Computer Science, CSU Fullerton 2026.">
+<meta property="og:image" content="https://udargit829.github.io/US-Map-Census-Prediction/screenshots/crossyear.png">
+<style>
+  /* Deliberately plain first draft. All of the look lives in these
+     variables and the rules below, so a visual language can be dropped
+     in later without touching the content. */
+  :root {
+    --ink: #1a1d23;
+    --muted: #5d6573;
+    --line: #e2e5ea;
+    --bg: #ffffff;
+    --soft: #f6f7f9;
+    --accent: #1f5bd8;
+    --max: 940px;
+    --header-h: 60px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 12px); }
+  body { margin: 0; font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: var(--bg); }
+  a { color: var(--accent); }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+
+  header { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.95); border-bottom: 1px solid var(--line); }
+  header .wrap { display: flex; justify-content: space-between; align-items: center; height: var(--header-h); }
+  header .name { font-weight: 700; color: var(--ink); text-decoration: none; }
+  header nav a { margin-left: 18px; color: var(--muted); text-decoration: none; font-size: 15px; }
+  header nav a:hover { color: var(--ink); }
+
+  .intro { padding-top: 76px; padding-bottom: 60px; }
+  .intro h1 { font-size: clamp(34px, 5vw, 50px); line-height: 1.1; margin: 0 0 10px; }
+  .intro .role { font-size: 21px; color: var(--muted); margin: 0 0 22px; }
+  .intro p { max-width: 700px; }
+  .highlights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 30px 0 0; padding: 0; list-style: none; }
+  .highlights li { background: var(--soft); border-radius: 6px; padding: 14px 16px; font-size: 15px; color: var(--muted); }
+  .highlights strong { display: block; color: var(--ink); font-size: 16px; margin-bottom: 2px; }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+  .btn { display: inline-block; padding: 9px 16px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); text-decoration: none; font-weight: 600; font-size: 15px; }
+  .btn:hover { background: var(--soft); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { filter: brightness(1.08); }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 27px; margin: 0 0 26px; }
+  h3 { font-size: 19px; margin: 0; }
+  h4 { font-size: 15px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 18px 0 6px; }
+  p { margin: 0 0 12px; }
+  ul { margin: 0 0 6px; padding-left: 20px; }
+  li { margin-bottom: 5px; }
+  .muted { color: var(--muted); }
+
+  /* One entry per role / project */
+  .entry { margin-bottom: 44px; }
+  .entry:last-child { margin-bottom: 0; }
+  .entry-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 20px; align-items: baseline; }
+  .when { color: var(--muted); font-size: 15px; white-space: nowrap; }
+  .where { color: var(--muted); font-size: 15.5px; margin: 2px 0 10px; }
+  .lead { max-width: 760px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
+  .tags span { font-size: 13.5px; padding: 3px 10px; border-radius: 999px; background: var(--soft); border: 1px solid var(--line); color: var(--muted); }
+  .related { margin-top: 12px; font-size: 15px; }
+  .related a { margin-right: 14px; }
+
+  /* Experience: a staircase of collapsed cards, each centred on one of
+     three vertical centre lines (23%, 50%, 77%). Clicking a card slides
+     it to full width and opens its details. */
+  .hint { font-size: 15px; margin: -14px 0 22px; max-width: 760px; }
+  .stairs .card {
+    width: 34%; margin-bottom: 18px;
+    border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+    transition: width .45s ease, margin-left .45s ease, box-shadow .2s ease;
+  }
+  .stairs .card:nth-of-type(3n+1) { margin-left: 6%; }
+  .stairs .card:nth-of-type(3n+2) { margin-left: 33%; }
+  .stairs .card:nth-of-type(3n)   { margin-left: 60%; }
+  .stairs .card.open { width: 100%; margin-left: 0; box-shadow: 0 6px 24px rgba(20,30,50,.08); }
+  .stairs .card:hover { box-shadow: 0 4px 16px rgba(20,30,50,.08); }
+
+  .card-head {
+    all: unset; box-sizing: border-box; cursor: pointer; display: grid;
+    grid-template-columns: 1fr auto; column-gap: 12px; width: 100%; padding: 16px 18px;
+  }
+  .card-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+  .card-title { font-weight: 700; font-size: 17px; grid-column: 1; }
+  .card-head .when, .card-head .where { grid-column: 1; margin: 0; font-size: 14.5px; }
+  .card-head .tagline { grid-column: 1; margin-top: 6px; font-size: 15px; color: var(--ink); }
+  .chev { grid-column: 2; grid-row: 1 / span 4; align-self: center; width: 10px; height: 10px;
+          border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+          transform: rotate(45deg); transition: transform .3s ease; }
+  .card.open .chev { transform: rotate(-135deg); }
+
+  /* Height animation: grid rows 0fr -> 1fr. */
+  .card-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .45s ease; }
+  .card.open .card-body { grid-template-rows: 1fr; }
+  .card-inner { overflow: hidden; padding: 0 18px; visibility: hidden; transition: visibility 0s .45s; }
+  .card.open .card-inner { padding-bottom: 18px; visibility: visible; transition-delay: 0s; }
+
+  /* Research: a wrapping row of collapsible cards (like Godot's
+     HFlowContainer). Opening a card only grows that card. */
+  .flow { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 22px; align-items: flex-start; }
+  .rcard { flex: 1 1 280px; max-width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+           transition: box-shadow .2s ease; }
+  .rcard:hover, .rcard.open { box-shadow: 0 4px 16px rgba(20,30,50,.08); }
+  .rcard .card-head { grid-template-columns: 1fr auto; }
+  .rcard .field { grid-column: 1; font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); margin-bottom: 2px; }
+  .rcard .card-title { font-size: 18px; }
+  .rcard .chev { grid-row: 1 / span 3; }
+  .rcard h5 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 12px 0 3px; }
+  .rcard h5:first-child { margin-top: 0; }
+  .rcard p { font-size: 15px; margin: 0; }
+  .flow { position: relative; }
+  .rcard-ph { flex: 1 1 280px; border: 1.5px dashed var(--line); border-radius: 8px; }
+  .rcard-spacer { flex: 0 0 100%; height: 0; margin: -9px 0; transition: height .45s ease; }
+  .no-anim, .no-anim * { transition: none !important; }
+  .rcard.floating {
+    position: absolute; z-index: 5; margin: 0;
+    transition: left .45s ease, top .45s ease, width .45s ease, box-shadow .2s ease;
+    box-shadow: 0 14px 44px rgba(20,30,50,.18);
+  }
+  .cshot { margin: 0 0 6px; }
+  .cshot img { width: 100%; height: auto; display: block; border-radius: 6px; border: 1px solid var(--line); }
+  .cshot figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .rlinks { padding-top: 14px; font-size: 14.5px; }
+  .small-note { font-size: 13px !important; color: var(--muted); margin-top: 6px !important; }
+  .rlinks a { margin-right: 14px; }
+
+  /* Publications: their own card type (.pubcard), deliberately separate
+     from the research cards so the redesign can make them stand out. */
+  .pubs .pubcard { flex: 1 1 380px; max-width: 100%; border: 1px solid var(--line); border-radius: 8px;
+                   padding: 18px 20px; display: flex; flex-direction: column; }
+  .pubcard .field { font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); margin-bottom: 4px; }
+  .pubcard h3 { font-size: 17px; line-height: 1.35; margin-bottom: 6px; }
+  .pubcard h3 a { color: var(--ink); text-decoration: none; }
+  .pubcard h3 a:hover { color: var(--accent); text-decoration: underline; }
+  .pubcard .cite { font-size: 14px; color: var(--muted); margin: 2px 0 10px; }
+  .pubcard p { font-size: 15px; margin: 0; }
+  .badge { align-self: flex-start; font-size: 12.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+           background: var(--soft); border: 1px solid var(--line); margin-bottom: 12px; }
+
+  .shot { margin: 16px 0 6px; }
+  .shot img { width: 100%; height: auto; display: block; border: 1px solid var(--line); border-radius: 6px; }
+
+
+  .skills { display: grid; grid-template-columns: max-content 1fr; gap: 8px 22px; margin: 0; }
+  .skills dt { font-weight: 600; }
+  .skills dd { margin: 0; color: var(--muted); }
+
+  footer { border-top: 1px solid var(--line); padding: 40px 0 60px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; color: var(--muted); font-size: 15px; }
+
+  @media (max-width: 820px) {
+    header nav { display: none; }
+    .highlights { grid-template-columns: 1fr; }
+    .stairs .card { width: auto; margin-left: 0 !important; }
+    .skills { grid-template-columns: 1fr; gap: 2px; }
+    .skills dd { margin-bottom: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="name" href="#top">Viraat Udar</a>
+    <nav>
+      <a href="#capstone">Capstone</a>
+      <a href="#experience">Experience</a>
+      <a href="#publications">Publications</a>
+      <a href="#research">Research</a>
+      <a href="#side-projects">Side projects</a>
+      <a href="#education">Education</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="intro wrap">
+    <h1>Viraat Udar</h1>
+    <p class="role">Python developer · data pipelines, APIs and analysis tools</p>
+    <p>I hold an M.S. in Computer Science from CSU Fullerton (2026). I build data pipelines, APIs and analysis tools in Python. Before graduate school I was the lead clinical data manager for a medical device clinical trial through to its FDA submission, worked with Edwards Lifesciences' data validation and biostatistics teams, and spent several years writing analysis code for academic genomics research, which led to two peer-reviewed publications.</p>
+    <ul class="highlights">
+      <li><strong>Data engineering</strong>Census ETL with FastAPI and DuckDB, CatBoost feature scoring, NGS data into MongoDB.</li>
+      <li><strong>Regulated data</strong>Moved a clinical trial from paper to electronic data capture; Data Management Plans, Azure storage, ICH-GCP monitoring.</li>
+      <li><strong>Research</strong>Mitochondrial DNA analysis for two papers; genetic marker and ancestry analysis for habitat restoration.</li>
+    </ul>
+    <div class="links">
+      <a class="btn primary" href="#capstone">See the capstone</a>
+      <a class="btn" href="https://github.com/UdarGIT829">GitHub</a>
+      <a class="btn" href="mailto:viraatudar9@gmail.com">Email me</a>
+    </div>
+  </div>
+
+  <!-- ── Capstone ──────────────────────────────────────────────────── -->
+  <section id="capstone">
+    <div class="wrap">
+      <h2>Capstone</h2>
+      <div class="entry">
+        <div class="entry-head"><h3>Hierarchical Feature Selection for U.S. Census Data</h3><span class="when">2025 to 2026</span></div>
+        <div class="where">M.S. capstone · California State University, Fullerton</div>
+        <p class="lead">Given any dataset with one value per state, it finds which of roughly 528 American Community Survey (ACS) variables, and which <em>families</em> of variables, best explain it. The hard part is shape: about 528 candidate features but only 51 rows (50 states plus DC), and many Census variables are just restatements of population size.</p>
+        <h4 style="margin-top:4px">How it evolved</h4>
+        <p class="lead">It began as a system for relating census demographics to congressional voting outcomes, and I generalized it to accept any state- or county-level target dataset.</p>
+        <div class="shot"><a href="https://udargit829.github.io/US-Map-Census-Prediction/"><img src="https://udargit829.github.io/US-Map-Census-Prediction/screenshots/crossyear.png" alt="Cross-year rank chart from the capstone's Godot frontend" width="1152" height="648" loading="lazy"></a></div>
+
+        <h4>What it found</h4>
+        <ul>
+          <li><strong>Lung cancer incidence:</strong> strong, stable signal; 200 recipes in 2022 averaged R² 0.939 (range 0.884 to 0.974).</li>
+          <li><strong>Opioid overdose deaths:</strong> mean R² near zero, but the best recipes reached about 0.6: real but sparse signal.</li>
+          <li><strong>UFO sightings</strong> (a stress test): best recipes fell from 0.80 in 2013 to 0.04 in 2016, which I traced to a change in how the source releases its data rather than to the method.</li>
+          <li>The cancer data are raw counts, so population size confounds them; I documented this and how to correct for it (age-adjusted rates, or dividing by ACS total population after the join).</li>
+        </ul>
+
+
+        <div class="tags"><span>Python</span><span>FastAPI</span><span>DuckDB</span><span>pandas</span><span>scikit-learn</span><span>statsmodels</span><span>CatBoost</span><span>Godot</span><span>WebAssembly</span></div>
+        <div class="links">
+          <a class="btn primary" href="https://udargit829.github.io/US-Map-Census-Prediction/">Project page</a>
+          <a class="btn" href="https://udargit829.github.io/US-Map-Census-Prediction/demo/">Live demo</a>
+          <a class="btn" href="https://udargit829.github.io/US-Map-Census-Prediction/FinalReport.pdf">Report (PDF)</a>
+          <a class="btn" href="https://github.com/UdarGIT829/US-Map-Census-Prediction">Source</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Experience ────────────────────────────────────────────────── -->
+  <section id="experience">
+    <div class="wrap stairs">
+      <h2>Experience</h2>
+      <p class="muted hint">Click a role for details.</p>
+
+      <div class="entry card">
+        <button class="card-head" type="button" aria-expanded="false" aria-controls="exp-1">
+          <span class="card-title">Lead Coding Instructor</span>
+          <span class="when">Aug 2023 to present</span>
+          <span class="where">Code Ninjas · Fullerton, CA</span>
+          <span class="tagline">Teaching kids to code, and building the attendance analytics app the dojo runs on.</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="card-body" id="exp-1"><div class="card-inner">
+        <ul>
+          <li>Teach JavaScript, C#, Unity and block coding to students ages 6 to 14, and give guided demonstrations of 3D modeling tools.</li>
+          <li>Explain each student's progress to parents and management in plain language.</li>
+          <li>Built and maintain an <strong>Attendance &amp; Student Focus Manager</strong>: a cross-platform desktop app that combines attendance records, weekly analytics and Discord-based student conversations, with per-student summary stats, an arrival heat map and a likelihood-of-arrival estimate.</li>
+          <li>Wrote a static, fully local web guide to building usable 3D assets for game development.</li>
+        </ul>
+        <div class="related">Related: <a href="https://github.com/UdarGIT829/Dojo-Admin-Dashboard">Dojo-Admin-Dashboard</a><a href="https://github.com/UdarGIT829/3D-Modeling-for-GameDev-BuildGuide">3D modeling build guide</a></div>
+        </div></div>
+      </div>
+
+      <div class="entry card">
+        <button class="card-head" type="button" aria-expanded="false" aria-controls="exp-2">
+          <span class="card-title">Associate Data Coordinator (contract)</span>
+          <span class="when">Jun 2022 to Dec 2022</span>
+          <span class="where">Edwards Lifesciences · Irvine, CA</span>
+          <span class="tagline">Clinical-trial data validation and query resolution in Medidata RAVE.</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="card-body" id="exp-2"><div class="card-inner">
+        <ul>
+          <li>Worked with the Data Validation and Biostatistics teams to validate and process database updates for clinical trial analysis.</li>
+          <li>Resolved data queries in Medidata RAVE EDC.</li>
+          <li>Performed manual data reviews and database specification QC with validated Excel workflows (VLOOKUP, FILTER, PivotTables) in a regulated environment.</li>
+        </ul>
+        </div></div>
+      </div>
+
+      <div class="entry card">
+        <button class="card-head" type="button" aria-expanded="false" aria-controls="exp-3">
+          <span class="card-title">Lead Clinical Data Manager &amp; Clinical Research Associate</span>
+          <span class="when">Jan 2021 to Jun 2022</span>
+          <span class="where">GenomeAdvisors · La Mirada, CA</span>
+          <span class="tagline">Took a medical device trial from paper to electronic data capture, through to FDA submission.</span>
+          <span class="chev" aria-hidden="true"></span>
+        </button>
+        <div class="card-body" id="exp-3"><div class="card-inner">
+        <p class="lead">I was in charge of the data for a medical device clinical trial, from its paper-based start through to the FDA submission: I wrote the Data Management Plan and owned the electronic data capture (EDC) system and storage.</p>
+        <h4>From paper to electronic data capture</h4>
+        <p class="lead">The trial began on paper under an Emergency Use Authorization. I led its transition to electronic data capture mid-trial, so data reached the study team as soon as sites entered it.</p>
+        <ul>
+          <li>Built the electronic case report forms in Jotform and automated the flow of submissions into Azure storage.</li>
+          <li>Configured both platforms to meet HIPAA and FDA requirements for electronic records, and documented the migration strategy.</li>
+          <li>Designed the Azure lake-storage architecture, with fine-grained access through Azure Active Directory and tamper-evident audit trails to meet FDA requirements.</li>
+          <li>Automated nightly data-validation jobs on Azure and wired them into a CI pipeline that blocked promotion of data when integrity checks failed.</li>
+        </ul>
+        <h4>Data management</h4>
+        <ul>
+          <li>Wrote the Data Management Plan, including data and cybersecurity for a federal government (NIH) project, and designed the Trial Master File (TMF).</li>
+          <li>Defined the Document Transfer Specification (DTS) for CRF updates from trial sites, and built HIPAA-validated workflows for CRF submission and aggregation.</li>
+          <li>Wrote R and Python scripts for clinical data analysis, and collaborated with biostatisticians on data reports.</li>
+        </ul>
+        <h4>Clinical operations</h4>
+        <ul>
+          <li>Conducted site qualification, initiation, monitoring and close-out visits under ICH-GCP and CRO SOPs.</li>
+          <li>Verified informed-consent procedures and protocol adherence, and documented protocol deviations and unscheduled events.</li>
+          <li>Worked directly with site staff and principal investigators on training, monitoring, adverse events and amendments; supported FDA regulatory submissions and responses to audit findings.</li>
+        </ul>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Publications ──────────────────────────────────────────────── -->
+  <section id="publications">
+    <div class="wrap">
+      <h2>Publications</h2>
+      <div class="flow pubs">
+        <article class="pubcard">
+          <div class="field">Journal of Clinical Medicine · December 2025</div>
+          <h3><a href="https://doi.org/10.3390/jcm15010086">Association of Mitochondrial DNA Haplogroups with Pediatric Systemic Lupus Erythematosus Disease Activity, Damage Scores, and Lupus Nephritis</a></h3>
+          <div class="cite"><strong>Udar V</strong>, Atilano SR, Stephens AV, Chang RY-S, Jackson NJ, Chang SY, Chwa M, McCurdy D. <em>J Clin Med</em> 15(1):86.</div>
+          <div class="badge">First author</div>
+          <p>Maternal mitochondrial DNA haplogroups of 25 pediatric lupus patients were determined by next-generation sequencing. Lupus nephritis was most frequent and most severe in the Amerindian and African haplogroups, which may contribute to ethnic disparities in disease severity.</p>
+          <div class="rlinks"><a href="https://doi.org/10.3390/jcm15010086">Read the paper</a><a href="https://pubmed.ncbi.nlm.nih.gov/41517335/">PubMed</a></div>
+        </article>
+
+        <article class="pubcard">
+          <div class="field">PLOS ONE · January 2021</div>
+          <h3><a href="https://doi.org/10.1371/journal.pone.0246114">Low frequency mitochondrial DNA heteroplasmy SNPs in blood, retina, and [RPE+choroid] of age-related macular degeneration subjects</a></h3>
+          <div class="cite">Atilano SR, Udar N, Satalich TA, <strong>Udar V</strong>, Chwa M, Kenney MC. <em>PLOS ONE</em> 16(1): e0246114.</div>
+          <div class="badge">Formal analysis</div>
+          <p>Whole mitochondrial genomes from retina, RPE+choroid and blood of AMD donors, plus 23 "hot-spot" SNPs across 222 blood samples. Blood carried far more low-frequency heteroplasmy than eye tissue, and two SNPs were more frequent in AMD, making them candidate biomarkers.</p>
+          <div class="rlinks"><a href="https://doi.org/10.1371/journal.pone.0246114">Read the paper</a></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Research ──────────────────────────────────────────────────── -->
+  <section id="research">
+    <div class="wrap">
+      <h2>Research</h2>
+      <p class="lead muted">Starting in 2016 I worked independently as a bioinformatics developer for academic genomics and ecology research groups. Each card is one project I contributed to; click one for details.</p>
+
+      <div class="flow floating-cards">
+        <article class="rcard card">
+          <button class="card-head" type="button" aria-expanded="false" aria-controls="rc-1">
+            <span class="field">Ophthalmology · mitochondrial genetics</span>
+            <span class="card-title">Age-related macular degeneration (AMD)</span>
+            <span class="tagline">Mitochondrial DNA variants in blood and eye tissue, and two candidate AMD biomarkers.</span>
+            <span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="card-body" id="rc-1"><div class="card-inner">
+          <h5>The question</h5>
+          <p>AMD is a leading cause of vision loss in older adults, and mitochondrial damage in the retina is thought to play a part. Do low-frequency mitochondrial DNA variants (heteroplasmy) differ between blood, retina and the RPE+choroid layer, and do any track with AMD?</p>
+          <h5>My part</h5>
+          <p>Formal analysis of whole-mitochondrial-genome sequencing from donor tissue, plus 23 "hot-spot" variants across 222 blood samples.</p>
+          <h5>Mentorship</h5>
+          <p>This wasn't my first research project, but it was my first deep dive into genetics. Dr. M. Cristina Kenney mentored me through it, from what a genetics study demands to how mitochondrial inheritance and heteroplasmy work, and patiently answered every question I brought her as a largely self-taught geneticist.</p>
+          <h5>What it showed</h5>
+          <p>Blood carried far more heteroplasmy than eye tissue, suggesting the retina is relatively protected. Two variants (m.13095T&gt;C, m.13105A&gt;G) were more common in AMD, making them candidate biomarkers. Transitions outnumbered transversions, pointing to replication errors rather than oxidative damage.</p>
+          <div class="rlinks"><a href="https://doi.org/10.1371/journal.pone.0246114">Paper · PLOS ONE 2021</a></div>
+          </div></div>
+        </article>
+
+        <article class="rcard card">
+          <button class="card-head" type="button" aria-expanded="false" aria-controls="rc-2">
+            <span class="field">Rheumatology · mitochondrial genetics</span>
+            <span class="card-title">Pediatric lupus</span>
+            <span class="tagline">Maternal mitochondrial ancestry and disease severity in pediatric lupus. First author.</span>
+            <span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="card-body" id="rc-2"><div class="card-inner">
+          <h5>The question</h5>
+          <p>Pediatric systemic lupus erythematosus is more severe in some ethnic groups. Mitochondrial DNA is inherited only from the mother, so its haplogroup records maternal ancestry. Does haplogroup track with disease activity, organ damage or lupus nephritis?</p>
+          <h5>My part</h5>
+          <p>First author. I co-conceived the study and its methods, curated the sequencing and clinical data for 25 patients, built the analysis software, validated the results against disease-activity (SLEDAI-2K) and organ-damage (SLICC) scores, and co-wrote the paper.</p>
+          <h5>The hurdle</h5>
+          <p>Sample size. Twenty-five patients across four maternal lineages, some with only four patients each, is far too few for standard population-genetics methods. The analysis instead used rank-based, nonparametric statistics suited to small, uneven groups: a Kruskal–Wallis test across all lineages with pairwise Wilcoxon rank-sum follow-ups, exact tests for categorical outcomes, and organ-damage scores recast as damaged vs. not, since most patients scored zero. When the eligible cohort was revised late in the project, I rebuilt and re-validated the analysis on the new sample.</p>
+          <h5>What it showed</h5>
+          <p>Disease activity differed by maternal lineage (p = 0.017): it was highest in the Amerindian and African lineages, and significantly higher in Amerindian than in Caucasian or Asian patients. Lupus nephritis was most frequent and most severe in the Amerindian (85%) and African (80%) lineages, and organ damage trended the same way without reaching significance. The sample is small, but it suggests mitochondrial ancestry may contribute to disparities in severity.</p>
+          <div class="rlinks"><a href="https://doi.org/10.3390/jcm15010086">Paper · J Clin Med 2025</a></div>
+          </div></div>
+        </article>
+
+        <article class="rcard card">
+          <button class="card-head" type="button" aria-expanded="false" aria-controls="rc-3">
+            <span class="field">Oncology · data engineering</span>
+            <span class="card-title">Cancer cell lines</span>
+            <span class="tagline">Validation and analysis tools for large cancer cell line datasets.</span>
+            <span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="card-body" id="rc-3"><div class="card-inner">
+          <h5>The question</h5>
+          <p>Cell line experiments are only as trustworthy as the bookkeeping behind them: every measurement has to trace back to the right line, barcode and cell count. How do you keep that true across large, messy experimental datasets?</p>
+          <h5>My part</h5>
+          <p>Multithreaded Python tools to validate and analyze the lab's cell line data, with association tracking and filtering, and earlier tools that merged data from many Excel files and checked cell counts by barcode and cell-line ID. The lab's data is under NDA.</p>
+          <h5>Why it mattered</h5>
+          <p>Downstream analysis can only be trusted if each result is tied to the right cell line, so validation has to be automatic and repeatable rather than a manual spreadsheet check.</p>
+          <div class="rlinks"><a href="https://github.com/UdarGIT829/Cell-Line-Data-Merger">Data merger</a><a href="https://github.com/UdarGIT829/Cell-Line-QC">Cell-line QC</a></div>
+          </div></div>
+        </article>
+
+        <article class="rcard card">
+          <button class="card-head" type="button" aria-expanded="false" aria-controls="rc-4">
+            <span class="field">Ecology · microsatellite genotyping</span>
+            <span class="card-title">Spartina cordgrass</span>
+            <span class="tagline">Telling native cordgrass from invasive hybrids with microsatellites.</span>
+            <span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="card-body" id="rc-4"><div class="card-inner">
+          <h5>The question</h5>
+          <p>Atlantic smooth cordgrass (<em>Spartina alterniflora</em>), introduced to San Francisco Bay, hybridizes with the native California cordgrass (<em>S. foliosa</em>). Hybrids spread aggressively and can look like natives, so eradication crews need a reliable way to tell which plants to remove.</p>
+          <h5>My part</h5>
+          <p>Microsatellite analysis for the San Francisco Estuary Invasive Spartina Project. Microsatellites are short repeated DNA sequences whose repeat lengths differ between species, so a panel of them separates native, invasive and hybrid plants.</p>
+          <h5>How it worked</h5>
+          <p>This was ongoing work, not a single study. New sample shipments arrived regularly; after processing, I analyzed each batch and classified the plants, and the results went back to the field teams to target invasive and hybrid plants while protecting native stands.</p>
+          </div></div>
+        </article>
+
+        <article class="rcard card">
+          <button class="card-head" type="button" aria-expanded="false" aria-controls="rc-5">
+            <span class="field">Ecology · ancestry estimation</span>
+            <span class="card-title">California sycamore</span>
+            <span class="tagline">Measuring London plane ancestry in native sycamores for restoration.</span>
+            <span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="card-body" id="rc-5"><div class="card-inner">
+          <h5>The question</h5>
+          <p>The native California sycamore (<em>Platanus racemosa</em>) hybridizes with the London plane, a widely planted street tree. Restoration needs genetically native trees, and how much hybrid ancestry a tree carries isn't visible by eye.</p>
+          <h5>My part</h5>
+          <p>Probabilistic ancestry estimation for the Santa Clara Valley Habitat Agency, scoring how much native versus London plane ancestry each sampled tree carries.</p>
+          <h5>How it worked</h5>
+          <p>Also ongoing: as new samples came in and were processed, I analyzed each batch and sent the results back to the agency's teams, who used them to decide which trees and stands were genetically native enough for restoration.</p>
+          </div></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Side projects ─────────────────────────────────────────────── -->
+  <section id="side-projects">
+    <div class="wrap">
+      <h2>Side projects</h2>
+      <p class="lead muted">Things I've built on my own time. Click one for details.</p>
+      <div class="flow floating-cards">
+        <article class="rcard card">
+          <button class="card-head" type="button" aria-expanded="false" aria-controls="sp-1">
+            <span class="field">Machine learning · LLM tooling · 2024</span>
+            <span class="card-title">LLM format enforcement</span>
+            <span class="tagline">Forcing an LLM to answer in valid JSON, before structured output existed.</span>
+            <span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="card-body" id="sp-1"><div class="card-inner">
+            <h5>What it is</h5>
+            <p>A small library I wrote before LLM APIs offered structured output: it constrains a Hugging Face Transformers model to emit valid JSON for function calling, by wrapping lm-format-enforcer.</p>
+            <div class="rlinks"><a href="https://github.com/UdarGIT829/LLM_Format_Enforcement">Source on GitHub</a></div>
+          </div></div>
+        </article>
+
+        <article class="rcard card">
+          <button class="card-head" type="button" aria-expanded="false" aria-controls="sp-2">
+            <span class="field">Genomics · Python, SQLite · 2026 · Rebuild in progress</span>
+            <span class="card-title">Mito-Web</span>
+            <span class="tagline">A browser for mitochondrial DNA variants: import, annotate, filter and compare samples.</span>
+            <span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="card-body" id="sp-2"><div class="card-inner">
+            <h5>What it is</h5>
+            <p>A web app for exploring mitochondrial DNA variant data, the same kind of data behind my research papers. It imports VCF files into per-study SQLite databases, then lets you filter variants by allele frequency, compare samples side by side, and keep notes on what a comparison turned up.</p>
+            <h5>How I built it</h5>
+            <p>A layered Python codebase (domain models, repositories and catalog services) behind a threaded web server from the standard library, with a versioned SQLite catalog that migrates its own schema. Dependency-free clients annotate each variant from Ensembl VEP, NCBI ClinVar and MSeqDR. A standalone SVG ring of the mitochondrial genome, drawn from the rCRS reference coordinates, is the start of a visual position map.</p>
+            <h5>What's next</h5>
+            <p>I'm rebuilding it as a client-side Godot app: you load your own files in the browser and all processing happens on your machine, so no data is ever uploaded or stored on a server. It will be hosted live, like my capstone demo.</p>
+            <div class="rlinks"><a href="https://github.com/UdarGIT829/Mito-Web">Source on GitHub</a></div>
+          </div></div>
+        </article>
+
+        <article class="rcard card">
+          <button class="card-head" type="button" aria-expanded="false" aria-controls="sp-3">
+            <span class="field">Data engineering · Python, SQLite, Docker · 2024</span>
+            <span class="card-title">Wikipedia to SQL</span>
+            <span class="tagline">Turning the full Wikipedia XML dump into a searchable SQLite database.</span>
+            <span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="card-body" id="sp-3"><div class="card-inner">
+            <h5>What it is</h5>
+            <p>An importer that loads Wikipedia's XML dump into SQLite as articles, categories and sections, with search by title, text or category.</p>
+            <h5>How I built it</h5>
+            <p>The dump is streamed with mwxml, and the import resumes from checkpoints if interrupted. The XML library's memory kept growing on a file this large, so the import runs in Docker in resumable 250,000-article batches.</p>
+            <h5>Where it was going</h5>
+            <p>A semantic-search layer: embed each article's title and introduction, weight terms by IDF across the whole encyclopedia, and map any input text to its best-matching Wikipedia categories.</p>
+            <div class="rlinks"><a href="https://github.com/UdarGIT829/Wikipedia_SQL-Parser">Source on GitHub</a></div>
+          </div></div>
+        </article>
+
+        <article class="rcard card">
+          <button class="card-head" type="button" aria-expanded="false" aria-controls="sp-4">
+            <span class="field">Health · Godot 4, Python, LLMs · 2026 · In progress</span>
+            <span class="card-title">BodySim</span>
+            <span class="tagline">A full-body 3D map of the muscles each exercise works, built toward a personalized training planner.</span>
+            <span class="chev" aria-hidden="true"></span>
+          </button>
+          <div class="card-body" id="sp-4"><div class="card-inner">
+            <figure class="cshot">
+              <img src="assets/bodysim-squat.jpg" alt="BodySim showing a high-bar back squat: quadriceps and glutes highlighted in red on a full-body anatomy model, with the exercise catalog and a list of affected muscles" width="1600" height="885" loading="lazy">
+              <figcaption>High-bar back squat: 54 of 466 muscles engaged. Anatomy models: <a href="https://github.com/Z-Anatomy/Models-of-human-anatomy">Z-Anatomy</a> (CC BY-SA 4.0) and BodyParts3D (CC BY-SA 2.1 JP).</figcaption>
+            </figure>
+            <h5>What it is</h5>
+            <p>It started from the little figures on gym machines that light up the muscles an exercise works. Pick an exercise and BodySim shows its muscle engagement across a full 3D anatomy model, with each muscle's role (primary mover, synergist or stabilizer), relative involvement and confidence.</p>
+            <h5>How I built it</h5>
+            <p>A 960-structure musculoskeletal model, including 466 skeletal muscles, extracted from the open Z-Anatomy atlas through a Blender pipeline, cross-referenced to standard anatomical terminology, license-checked, and rendered in Godot at 60 FPS. Every exercise profile accounts for all 466 muscles, including explicit zeros.</p>
+            <h5>Adding exercises</h5>
+            <p>All 873 exercises from the open free-exercise-db are searchable. To make one visualizable, Claude drafts a definition from its instructions and photos: joint movements, stabilization demands and which side works. A deterministic tracer turns that into a profile of all 466 muscles using a weighted muscle-action table, so every result traces back to a rule. Each draft is frozen under a SHA-256 hash, and it goes live only when my vote and an independent Claude reviewer's both accept it. An auto mode runs drafting and review unattended within a token budget. 33 exercises are visualizable so far.</p>
+            <p>The reviewer is strict: it rejected about 30% of drafts. Its findings showed three things the tracer couldn't express (a load carried by one arm, joints that move but barely contribute, and exercises that are one-sided for the arms but two-sided for the legs), so I rebuilt the tracer to handle them.</p>
+            <h5>The open problem</h5>
+            <p>The goal is a weekly planner: give it goals like stronger chest and arms, 60-rep squat sets or ankle mobility, log reps to failure and fatigue, and get day-by-day plans. That needs a per-muscle load that adds up across exercises, and I haven't found research that supports such a number. Until I do, BodySim reports relative engagement with confidence levels rather than inventing one.</p>
+            <div class="rlinks"><a href="https://udargit829.github.io/BodySim/">Project page</a><a href="https://udargit829.github.io/BodySim/demo/">Live demo</a><a href="https://github.com/UdarGIT829/BodySim">Source on GitHub</a></div>
+            <p class="small-note">The demo is a 105 MB download and runs best on a desktop browser. Right-click an exercise to see its photos.</p>
+          </div></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── Education & skills ────────────────────────────────────────── -->
+  <section id="education">
+    <div class="wrap">
+      <h2>Education</h2>
+      <div class="entry">
+        <div class="entry-head"><h3>M.S. Computer Science</h3><span class="when">May 2026</span></div>
+        <div class="where">California State University, Fullerton</div>
+        <ul>
+          <li><strong>Artificial Neural Networks:</strong> implemented CNNs, RNNs and Transformers from scratch in PyTorch.</li>
+          <li><strong>Operating System Design:</strong> kernel architecture, concurrency, memory management, containerization and distributed systems, read through foundational papers such as Mach and Plan 9.</li>
+          <li><strong>Web Back-End Engineering:</strong> RESTful API development, server-side frameworks and database integration.</li>
+          <li><strong>Software Engineering:</strong> Agile and waterfall SDLCs, requirements gathering, version control, team-based development and test planning.</li>
+          <li><strong>Computer graphics:</strong> OpenGL meshes, particle simulation and UV mapping.</li>
+        </ul>
+      </div>
+      <div class="entry">
+        <div class="entry-head"><h3>B.S. Computer Science</h3><span class="when">Mar 2021</span></div>
+        <div class="where">California State University, Fullerton</div>
+      </div>
+
+      <h2 style="margin-top:48px">Skills &amp; certifications</h2>
+      <dl class="skills">
+        <dt>Languages</dt><dd>Python, R, C/C++, C#, JavaScript, Bash, HTML/CSS</dd>
+        <dt>Data &amp; ML</dt><dd>pandas, NumPy, scikit-learn, statsmodels, CatBoost, PyTorch, TensorFlow, Hugging Face Transformers</dd>
+        <dt>Databases</dt><dd>DuckDB, MongoDB, SQLite, MySQL</dd>
+        <dt>Backend &amp; infrastructure</dt><dd>FastAPI, REST APIs, Docker, Kubernetes, Azure (incl. Azure AD), Linux/UNIX</dd>
+        <dt>Clinical data</dt><dd>Medidata RAVE EDC, EDC and TMF design, Data Management Plans, CRF workflows, ICH-GCP</dd>
+        <dt>Tools</dt><dd>Git, Godot, Unity, Excel</dd>
+        <dt>Certifications</dt><dd>GCP (NIDA Clinical Trials Network) · ISO 13485:2016 · ISO 14971:2019</dd>
+      </dl>
+    </div>
+  </section>
+</main>
+
+<footer id="contact">
+  <div class="wrap">
+    <span>Viraat Udar · <a href="mailto:viraatudar9@gmail.com">viraatudar9@gmail.com</a></span>
+    <span><a href="https://github.com/UdarGIT829">github.com/UdarGIT829</a></span>
+  </div>
+</footer>
+
+<script>
+  // Experience cards: open in place (the staircase handles the motion).
+  document.querySelectorAll(".stairs .card-head").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var card = btn.closest(".card");
+      var open = card.classList.toggle("open");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  });
+
+  // Floating cards (Research, Side projects): on wide screens every opened card floats to the same
+  // focus point, centred and just below the titles of the first row. A
+  // dashed placeholder holds its slot, and a full-width spacer after the
+  // first row grows to the open card's height, pushing later rows below it
+  // so their titles are never covered. On narrow screens cards open in place.
+  function floatingCards(flow) {
+    var wide = window.matchMedia("(min-width: 821px)");
+    var GAP = 18, DUR = 450;
+    var current = null;   // { card, ph, spacer }
+
+    function head(card) { return card.querySelector(".card-head"); }
+    function items() { return Array.prototype.filter.call(flow.children, function (c) { return !c.classList.contains("rcard-spacer") && !c.classList.contains("floating"); }); }
+
+    // First-row geometry: its bottom, the bottom of its lowest title, and
+    // the first item that starts the second row (where the spacer goes).
+    function firstRow() {
+      var list = items(), top = list[0].offsetTop, bottom = 0, titles = 0, next = null;
+      list.forEach(function (c) {
+        if (Math.abs(c.offsetTop - top) > 2) { if (!next) next = c; return; }
+        bottom = Math.max(bottom, c.offsetTop + c.offsetHeight);
+        var t = c.querySelector(".card-title");
+        if (t) titles = Math.max(titles, t.getBoundingClientRect().bottom - flow.getBoundingClientRect().top);
+      });
+      return { top: top, bottom: bottom, titles: Math.round(titles), next: next };
+    }
+
+    // Natural height of the card when open at a given width.
+    function openHeight(card, width) {
+      var clone = card.cloneNode(true);
+      clone.classList.add("open");
+      clone.classList.remove("floating");
+      clone.removeAttribute("id");
+      clone.style.cssText = "position:absolute;visibility:hidden;left:0;top:0;width:" + width + "px";
+      clone.querySelectorAll("*").forEach(function (n) { n.style.transition = "none"; n.removeAttribute("id"); });
+      flow.appendChild(clone);
+      var h = clone.offsetHeight;
+      flow.removeChild(clone);
+      return h;
+    }
+
+    // The focus point sits just below the first row's titles, measured with
+    // every card at rest so it is the same whichever card opens.
+    var focusTop = null;
+    function measureFocus() { focusTop = firstRow().titles + 10; }
+
+    function place(state) {
+      var card = state.card, spacer = state.spacer;
+      var W = Math.min(760, Math.round(flow.clientWidth * 0.82));
+      var row = firstRow();
+      var top = focusTop;
+      var h = openHeight(card, W);
+      card.style.left = Math.round((flow.clientWidth - W) / 2) + "px";
+      card.style.top = top + "px";
+      card.style.width = W + "px";
+      // Rows after the first must start below the open card.
+      spacer.style.height = Math.max(0, top + h - row.bottom) + "px";   // with its -GAP/2 margins, later rows land GAP below the card
+    }
+
+    function open(card) {
+      if (current) close(current, true);
+      measureFocus();                               // all cards at rest here
+      // Placeholder keeps the card's slot (and shows where it will return).
+      var ph = document.createElement("div");
+      ph.className = "rcard-ph";
+      ph.style.height = card.offsetHeight + "px";
+      card.parentNode.insertBefore(ph, card);
+      card.style.left = ph.offsetLeft + "px";
+      card.style.top = ph.offsetTop + "px";
+      card.style.width = ph.offsetWidth + "px";
+      card.classList.add("floating");
+      // Spacer: a full-width line after the first row.
+      var spacer = document.createElement("div");
+      spacer.className = "rcard-spacer";
+      var row = firstRow();
+      flow.insertBefore(spacer, row.next);          // null -> append
+      void card.offsetWidth;                        // commit start state
+      card.classList.add("open");
+      head(card).setAttribute("aria-expanded", "true");
+      current = { card: card, ph: ph, spacer: spacer };
+      place(current);
+      setTimeout(function () {
+        if (current && current.card === card) card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, DUR + 20);
+    }
+
+    function close(state, instant) {
+      var card = state.card, ph = state.ph, spacer = state.spacer;
+      if (instant) { card.classList.add("no-anim"); spacer.classList.add("no-anim"); }
+      card.classList.remove("open");
+      head(card).setAttribute("aria-expanded", "false");
+      // Where the slot will be once the spacer is gone.
+      var keep = spacer.style.height;
+      spacer.style.transition = "none"; spacer.style.display = "none";
+      var endLeft = ph.offsetLeft, endTop = ph.offsetTop, endW = ph.offsetWidth;
+      spacer.style.display = ""; spacer.style.height = keep; void spacer.offsetHeight; spacer.style.transition = "";
+      spacer.style.height = "0px";
+      card.style.left = endLeft + "px";
+      card.style.top = endTop + "px";
+      card.style.width = endW + "px";
+      var done = function () {
+        card.classList.remove("floating", "no-anim");
+        card.style.left = card.style.top = card.style.width = "";
+        if (ph.parentNode) ph.parentNode.removeChild(ph);
+        if (spacer.parentNode) spacer.parentNode.removeChild(spacer);
+      };
+      if (instant) { done(); void card.offsetHeight; } else setTimeout(done, DUR);
+      if (current && current.card === card) current = null;
+    }
+
+    flow.querySelectorAll(".rcard .card-head").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var card = btn.closest(".rcard");
+        if (!wide.matches) {                        // phones: open in place
+          var o = card.classList.toggle("open");
+          btn.setAttribute("aria-expanded", o ? "true" : "false");
+          return;
+        }
+        if (current && current.card === card) close(current, false);
+        else open(card);
+      });
+    });
+
+    window.addEventListener("resize", function () {
+      if (!current) return;
+      if (!wide.matches) { close(current, true); return; }
+      var c = current.card; close(current, true); open(c);   // re-measure at the new width
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && current) { var c = current.card; close(current, false); head(c).focus(); }
+    });
+  }
+  document.querySelectorAll(".flow.floating-cards").forEach(floatingCards);
+</script>
+</body>
+</html>
