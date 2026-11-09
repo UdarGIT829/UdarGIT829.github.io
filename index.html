@@ -457,19 +457,24 @@
 
         <article class="rcard card">
           <button class="card-head" type="button" aria-expanded="false" aria-controls="sp-2">
-            <span class="field">Genomics · Python, SQLite · 2026 · Rebuild in progress</span>
+            <span class="field">Genomics · Godot 4, WebAssembly · 2026</span>
             <span class="card-title">Mito-Web</span>
-            <span class="tagline">A browser for mitochondrial DNA variants: import, annotate, filter and compare samples.</span>
+            <span class="tagline">Mitochondrial DNA analysis that runs entirely in your browser: haplogroups, comparisons and statistics as a node graph.</span>
             <span class="chev" aria-hidden="true"></span>
           </button>
           <div class="card-body" id="sp-2"><div class="card-inner">
+            <figure class="cshot">
+              <img src="assets/mitoweb-graph.jpg" alt="Mito Web's Analysis tab: a node graph that finds the variants defining haplogroup J in 1000 Genomes data, with counts on every node" width="1600" height="900" loading="lazy">
+              <figcaption>The "Recreate haplogroup markers" workflow on 1000 Genomes data: it finds the seven variants that define haplogroup J from the samples alone.</figcaption>
+            </figure>
             <h5>What it is</h5>
-            <p>A web app for exploring mitochondrial DNA variant data, the same kind of data behind my research papers. It imports VCF files into per-study SQLite databases, then lets you filter variants by allele frequency, compare samples side by side, and keep notes on what a comparison turned up.</p>
+            <p>A tool for mitochondrial DNA variant data, the same kind of data behind my research papers. You upload VCF files and it places every call on the rCRS reference, assigns each sample a PhyloTree 17 haplogroup, and lets you build an analysis as a graph: filters, comparisons between groups, germline and somatic classes by allele fraction, gnomAD and ClinVar annotation, mutation density along the genome with permutation tests, and patient-group statistics (Kruskal-Wallis, Wilcoxon, Fisher's exact, ANOVA, Spearman).</p>
             <h5>How I built it</h5>
-            <p>A layered Python codebase (domain models, repositories and catalog services) behind a threaded web server from the standard library, with a versioned SQLite catalog that migrates its own schema. Dependency-free clients annotate each variant from Ensembl VEP, NCBI ClinVar and MSeqDR. A standalone SVG ring of the mitochondrial genome, drawn from the rCRS reference coordinates, is the start of a visual position map.</p>
-            <h5>What's next</h5>
-            <p>I'm rebuilding it as a client-side Godot app: you load your own files in the browser and all processing happens on your machine, so no data is ever uploaded or stored on a server. It will be hosted live, like my capstone demo.</p>
-            <div class="rlinks"><a href="https://github.com/UdarGIT829/Mito-Web">Source on GitHub</a></div>
+            <p>It began as a layered Python app for a research collaboration: a versioned SQLite catalog, a standard-library web server, and clients for Ensembl VEP, ClinVar and MSeqDR. Research data can't be hosted publicly, so I rebuilt it as a Godot app compiled to WebAssembly that runs entirely in the browser: files are read locally, kept in the browser's storage, and saved as a workspace file. It uses columnar storage and chunked work, since the web build is single-threaded, and every push runs its tests and a public-data check before GitHub Actions deploys it.</p>
+            <h5>How it holds up</h5>
+            <p>Its haplogroup calls match HaploGrep 3.3.2 on all 2,534 people in the 1000 Genomes Project's mitochondrial data. From the data alone, it recreates 175 haplogroup-defining variants across 27 clades, every one a known PhyloTree marker. The patient-group tests follow Stata 18's defaults and are checked against published Stata results and scipy.</p>
+            <div class="rlinks"><a href="https://udargit829.github.io/Mito-Web/">Project page</a><a href="https://udargit829.github.io/Mito-Web/demo/">Live demo</a><a href="https://github.com/UdarGIT829/Mito-Web">Source on GitHub</a></div>
+            <p class="small-note">The demo is a 40 MB download and runs best on a desktop browser. On the Files tab, press Load example data to try it with 1000 Genomes data.</p>
           </div></div>
         </article>
 
