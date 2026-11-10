@@ -207,9 +207,13 @@
   #streaks.live canvas { opacity: 1; }
   #streaks.narrow.live canvas { opacity: .3; }
   @media (min-width: 1000px) {
+    #streaks canvas { -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,.28) 0, rgba(0,0,0,.28) 50%, #000 64%);
+                      mask-image: linear-gradient(to right, rgba(0,0,0,.28) 0, rgba(0,0,0,.28) 50%, #000 64%); }
+  }
+  @media (min-width: 1000px) {
     /* Room between sections for the streaks to fly from one picture to the
        next: the flight plays out across this gap (see assets/streaks.js). */
-    section[data-streaks] { margin-top: 50vh; }
+    section[data-streaks] { margin-top: 28vh; }
     .wrap { margin-left: max(4vw, calc(50vw - 640px)); max-width: min(var(--max), 56vw); }
     header .wrap { max-width: none; margin-right: 4vw; }
   }
@@ -247,7 +251,10 @@
          box-shadow: 0 18px 50px rgba(0, 0, 0, .45); }
   .chev { border-color: var(--accent); }
   .rcard .field, .pubcard .field { font-family: var(--display); letter-spacing: .16em; color: var(--accent); }
-  .rcard-ph { border-color: rgba(230, 201, 143, .3); }
+  .rcard-ph { border: 1px solid rgba(230, 201, 143, .1); background: rgba(230, 201, 143, .035); }
+  .has-open > .rcard:not(.floating) { opacity: .4; transition: opacity .3s ease; }
+  .stack { margin: 18px 0 0; font-size: 14.5px; color: var(--muted); }
+  .stack span { margin-right: 10px; font: 500 12px var(--display); letter-spacing: .18em; text-transform: uppercase; color: var(--accent); }
   .badge { background: transparent; border-color: rgba(230, 201, 143, .45); color: var(--accent); font-family: var(--display); letter-spacing: .1em; }
   .pubcard h3 a { color: #f2ecdf; }
   .tags span { background: transparent; border-color: var(--line); color: var(--muted); }
@@ -282,10 +289,11 @@
     <p class="role">Python developer · data pipelines, APIs and analysis tools</p>
     <p>I hold an M.S. in Computer Science from CSU Fullerton (2026). I build data pipelines, APIs and analysis tools in Python. Before graduate school I was the lead clinical data manager for a medical device clinical trial through to its FDA submission, worked with Edwards Lifesciences' data validation and biostatistics teams, and spent several years writing analysis code for academic genomics research, which led to two peer-reviewed publications.</p>
     <ul class="highlights">
-      <li><strong>Data engineering</strong>Census ETL with FastAPI and DuckDB, CatBoost feature scoring, NGS data into MongoDB.</li>
-      <li><strong>Regulated data</strong>Moved a clinical trial from paper to electronic data capture; Data Management Plans, Azure storage, ICH-GCP monitoring.</li>
-      <li><strong>Research</strong>Mitochondrial DNA analysis for two papers; genetic marker and ancestry analysis for habitat restoration.</li>
+      <li><strong>Data engineering</strong>Pipelines that collect public Census data, store it in a database and find which figures best explain a trend; genetic sequencing data loaded into a searchable database.</li>
+      <li><strong>Regulated data</strong>Moved a medical device clinical trial from paper forms to an electronic system, and set up how its data was planned, stored and monitored to meet clinical-trial rules.</li>
+      <li><strong>Research</strong>Analyzed mitochondrial DNA for two published medical studies, and used genetic markers to guide habitat restoration.</li>
     </ul>
+    <p class="stack"><span>Skills</span> Python · SQL databases · R · FastAPI and REST APIs · Docker · Azure · pandas and scikit-learn · Medidata RAVE · Git</p>
     <div class="links">
       <a class="btn primary" href="#capstone">See the capstone</a>
       <a class="btn" href="assets/Viraat-Udar-Resume.pdf" download>Résumé (PDF)</a>
@@ -433,7 +441,7 @@
   <section id="research" data-streaks="assets/streaks/eye.png" data-streaks-angle="90">
     <div class="wrap">
       <h2 data-streaks-top>Research</h2>
-      <p class="lead muted">Starting in 2016 I worked independently as a bioinformatics developer for academic genomics and ecology research groups. Each card is one project I contributed to; click one for details.</p>
+      <p class="lead muted">Starting in 2016 I worked as a freelance bioinformatics developer for academic genomics and ecology research groups. Each card is one project I contributed to; click one for details.</p>
 
       <div class="flow floating-cards">
         <article class="rcard card" data-streaks="assets/streaks/research/amd.png">
@@ -765,6 +773,7 @@
       flow.insertBefore(spacer, row.next);          // null -> append
       void card.offsetWidth;                        // commit start state
       card.classList.add("open");
+      flow.classList.add("has-open");
       head(card).setAttribute("aria-expanded", "true");
       current = { card: card, ph: ph, spacer: spacer };
       place(current);
@@ -777,6 +786,7 @@
       var card = state.card, ph = state.ph, spacer = state.spacer;
       if (instant) { card.classList.add("no-anim"); spacer.classList.add("no-anim"); }
       card.classList.remove("open");
+      flow.classList.remove("has-open");
       head(card).setAttribute("aria-expanded", "false");
       // Where the slot will be once the spacer is gone.
       var keep = spacer.style.height;

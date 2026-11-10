@@ -51,7 +51,7 @@ const DEFAULTS = {
   noisescale: 10, noiselow: 0.36, noisehigh: 0.56,
   blur: 0.008,         // sample jitter, picture units
   gaps: 0.35, gapscale: 7, flicker: 0.45,
-  ambient: 28,         // ambient tracks
+  ambient: 40,         // ambient tracks (they carry the view between pictures)
   ambientlength: 45, ambientspread: 1.6, ambientdensity: 0.55, ambientglow: 0.35, ambientthickness: 0.03,
   flowspread: 0.45,
   colour: false,       // keep the image's own colours instead of the gold tint
