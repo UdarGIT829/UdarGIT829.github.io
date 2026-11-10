@@ -8,6 +8,10 @@
 <meta property="og:title" content="Viraat Udar · Python developer">
 <meta property="og:description" content="Data pipelines, APIs and analysis tools; clinical-trial data management; genomics research. M.S. Computer Science, CSU Fullerton 2026.">
 <meta property="og:image" content="https://udargit829.github.io/US-Map-Census-Prediction/screenshots/crossyear.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap">
+<link rel="modulepreload" href="assets/vendor/three.module.min.js">
 <style>
   /* Deliberately plain first draft. All of the look lives in these
      variables and the rules below, so a visual language can be dropped
@@ -162,9 +166,84 @@
     .skills { grid-template-columns: 1fr; gap: 2px; }
     .skills dd { margin-bottom: 10px; }
   }
+
+  /* ── Theme: light streaks ─────────────────────────────────────────────
+     A deep blue-slate night with warm ivory light. Behind the page,
+     assets/streaks.js draws light streaks flying along fixed tracks that
+     line up into a picture for each section, and for each research and
+     side-project card while it is open. Every section and card names its
+     own picture with data-streaks="<image>" (plus optional
+     data-streaks-<setting> attributes; see assets/streaks.js). A section's
+     picture holds while its band, from its data-streaks-top element to its
+     data-streaks-bottom element (default: the section's own end), covers
+     the middle of the view. Layout rules above are unchanged. */
+  :root {
+    --ink: #e7e2d6;
+    --muted: #9aa6ae;
+    --line: rgba(231, 220, 192, .14);
+    --bg: #0c151c;
+    --soft: rgba(231, 220, 192, .06);
+    --accent: #e6c98f;
+    --panel: rgba(16, 27, 35, .78);
+    --display: "Jost", "Futura", "Century Gothic", sans-serif;
+  }
+  body { font-family: "Jost", system-ui, sans-serif; font-weight: 300; letter-spacing: .01em;
+         background: radial-gradient(120% 90% at 70% 20%, #16252f 0%, #0c151c 55%, #080e13 100%) fixed; }
+  #streaks { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+  #streaks canvas { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity 1.2s ease; }
+  #streaks.live canvas { opacity: 1; }
+  #streaks.narrow.live canvas { opacity: .3; }
+  @media (min-width: 1000px) {
+    /* Room between sections for the streaks to fly from one picture to the
+       next: the flight plays out across this gap (see assets/streaks.js). */
+    section[data-streaks] { margin-top: 50vh; }
+    .wrap { margin-left: max(4vw, calc(50vw - 640px)); max-width: min(var(--max), 56vw); }
+    header .wrap { max-width: none; margin-right: 4vw; }
+  }
+
+  a { color: var(--accent); text-decoration-color: rgba(230, 201, 143, .35); text-underline-offset: 3px; }
+  a:hover { color: #f6e2b4; }
+  strong, b { font-weight: 500; color: #f2ecdf; }
+
+  header { background: rgba(12, 21, 28, .55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom-color: var(--line); }
+  header .name { font: 400 15px var(--display); letter-spacing: .32em; text-transform: uppercase; color: var(--ink); }
+  header nav a { font: 400 12.5px var(--display); letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+  header nav a:hover { color: var(--ink); }
+
+  .intro { padding-top: 14vh; min-height: 88vh; }
+  .intro h1 { font: 300 clamp(40px, 6.4vw, 78px)/1.02 var(--display); letter-spacing: .14em; text-transform: uppercase; color: #f2ecdf; }
+  .intro .role { font: 400 13.5px var(--display); letter-spacing: .3em; text-transform: uppercase; color: var(--accent); }
+  .highlights li { background: var(--panel); border: 1px solid var(--line); }
+  .highlights strong { font: 500 12.5px var(--display); letter-spacing: .16em; text-transform: uppercase; }
+
+  section { border-top: 0; padding: 18vh 0 10vh; }
+  h2 { font: 300 clamp(26px, 3vw, 34px) var(--display); letter-spacing: .28em; text-transform: uppercase; color: #f2ecdf; }
+  h2::before { content: ""; display: block; width: 46px; height: 1px; margin-bottom: 16px; background: var(--accent); }
+  h3 { font-weight: 500; }
+  h4, .rcard h5 { font-family: var(--display); letter-spacing: .18em; color: var(--accent); }
+  .when, .where { color: var(--muted); }
+
+  .btn { font: 400 13px var(--display); letter-spacing: .2em; text-transform: uppercase; color: var(--ink);
+         border-color: rgba(231, 220, 192, .35); background: transparent; border-radius: 2px; }
+  .btn:hover { background: rgba(231, 220, 192, .08); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #0c151c; }
+
+  .stairs .card, .rcard, .pubs .pubcard { background: var(--panel); border-color: var(--line);
+         backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 3px; }
+  .stairs .card.open, .rcard.floating, .rcard.open { background: rgba(18, 30, 39, .95); border-color: rgba(230, 201, 143, .35);
+         box-shadow: 0 18px 50px rgba(0, 0, 0, .45); }
+  .chev { border-color: var(--accent); }
+  .rcard .field, .pubcard .field { font-family: var(--display); letter-spacing: .16em; color: var(--accent); }
+  .rcard-ph { border-color: rgba(230, 201, 143, .3); }
+  .badge { background: transparent; border-color: rgba(230, 201, 143, .45); color: var(--accent); font-family: var(--display); letter-spacing: .1em; }
+  .pubcard h3 a { color: #f2ecdf; }
+  .tags span { background: transparent; border-color: var(--line); color: var(--muted); }
+  .shot img, .cshot img { border-color: var(--line); box-shadow: 0 12px 40px rgba(0, 0, 0, .45); }
+  footer { border-top-color: var(--line); }
 </style>
 </head>
 <body>
+<div id="streaks" aria-hidden="true"></div>
 
 <header>
   <div class="wrap">
@@ -182,8 +261,8 @@
 </header>
 
 <main id="top">
-  <div class="intro wrap">
-    <h1>Viraat Udar</h1>
+  <div class="intro wrap" data-streaks="assets/streaks/name.png" data-streaks-gaps="0.12" data-streaks-breakup="0.5">
+    <h1 data-streaks-top>Viraat Udar</h1>
     <p class="role">Python developer · data pipelines, APIs and analysis tools</p>
     <p>I hold an M.S. in Computer Science from CSU Fullerton (2026). I build data pipelines, APIs and analysis tools in Python. Before graduate school I was the lead clinical data manager for a medical device clinical trial through to its FDA submission, worked with Edwards Lifesciences' data validation and biostatistics teams, and spent several years writing analysis code for academic genomics research, which led to two peer-reviewed publications.</p>
     <ul class="highlights">
@@ -199,9 +278,9 @@
   </div>
 
   <!-- ── Capstone ──────────────────────────────────────────────────── -->
-  <section id="capstone">
+  <section id="capstone" data-streaks="assets/streaks/bars.png" data-streaks-angle="90">
     <div class="wrap">
-      <h2>Capstone</h2>
+      <h2 data-streaks-top>Capstone</h2>
       <div class="entry">
         <div class="entry-head"><h3>Hierarchical Feature Selection for U.S. Census Data</h3><span class="when">2025 to 2026</span></div>
         <div class="where">M.S. capstone · California State University, Fullerton</div>
@@ -231,9 +310,9 @@
   </section>
 
   <!-- ── Experience ────────────────────────────────────────────────── -->
-  <section id="experience">
+  <section id="experience" data-streaks="assets/streaks/pulse.png" data-streaks-angle="80">
     <div class="wrap stairs">
-      <h2>Experience</h2>
+      <h2 data-streaks-top>Experience</h2>
       <p class="muted hint">Click a role for details.</p>
 
       <div class="entry card">
@@ -308,9 +387,9 @@
   </section>
 
   <!-- ── Publications ──────────────────────────────────────────────── -->
-  <section id="publications">
+  <section id="publications" data-streaks="assets/streaks/helix.png">
     <div class="wrap">
-      <h2>Publications</h2>
+      <h2 data-streaks-top>Publications</h2>
       <div class="flow pubs">
         <article class="pubcard">
           <div class="field">Journal of Clinical Medicine · December 2025</div>
@@ -334,13 +413,13 @@
   </section>
 
   <!-- ── Research ──────────────────────────────────────────────────── -->
-  <section id="research">
+  <section id="research" data-streaks="assets/streaks/eye.png" data-streaks-angle="90">
     <div class="wrap">
-      <h2>Research</h2>
+      <h2 data-streaks-top>Research</h2>
       <p class="lead muted">Starting in 2016 I worked independently as a bioinformatics developer for academic genomics and ecology research groups. Each card is one project I contributed to; click one for details.</p>
 
       <div class="flow floating-cards">
-        <article class="rcard card">
+        <article class="rcard card" data-streaks="assets/streaks/research/amd.png">
           <button class="card-head" type="button" aria-expanded="false" aria-controls="rc-1">
             <span class="field">Ophthalmology · mitochondrial genetics</span>
             <span class="card-title">Age-related macular degeneration (AMD)</span>
@@ -360,7 +439,7 @@
           </div></div>
         </article>
 
-        <article class="rcard card">
+        <article class="rcard card" data-streaks="assets/streaks/research/lupus.png">
           <button class="card-head" type="button" aria-expanded="false" aria-controls="rc-2">
             <span class="field">Rheumatology · mitochondrial genetics</span>
             <span class="card-title">Pediatric lupus</span>
@@ -380,7 +459,7 @@
           </div></div>
         </article>
 
-        <article class="rcard card">
+        <article class="rcard card" data-streaks="assets/streaks/research/cancer.png" data-streaks-angle="90">
           <button class="card-head" type="button" aria-expanded="false" aria-controls="rc-3">
             <span class="field">Oncology · data engineering</span>
             <span class="card-title">Cancer cell lines</span>
@@ -398,7 +477,7 @@
           </div></div>
         </article>
 
-        <article class="rcard card">
+        <article class="rcard card" data-streaks="assets/streaks/research/spartina.png" data-streaks-angle="90" data-streaks-colour="true" data-streaks-threshold="0.05">
           <button class="card-head" type="button" aria-expanded="false" aria-controls="rc-4">
             <span class="field">Ecology · microsatellite genotyping</span>
             <span class="card-title">Spartina cordgrass</span>
@@ -415,7 +494,7 @@
           </div></div>
         </article>
 
-        <article class="rcard card">
+        <article class="rcard card" data-streaks="assets/streaks/research/sycamore.png">
           <button class="card-head" type="button" aria-expanded="false" aria-controls="rc-5">
             <span class="field">Ecology · ancestry estimation</span>
             <span class="card-title">California sycamore</span>
@@ -436,12 +515,12 @@
   </section>
 
   <!-- ── Side projects ─────────────────────────────────────────────── -->
-  <section id="side-projects">
+  <section id="side-projects" data-streaks="assets/streaks/flex.png">
     <div class="wrap">
-      <h2>Side projects</h2>
+      <h2 data-streaks-top>Side projects</h2>
       <p class="lead muted">Things I've built on my own time. Click one for details.</p>
       <div class="flow floating-cards">
-        <article class="rcard card">
+        <article class="rcard card" data-streaks="assets/streaks/side/llm.png" data-streaks-gaps="0.12" data-streaks-breakup="0.5">
           <button class="card-head" type="button" aria-expanded="false" aria-controls="sp-1">
             <span class="field">Machine learning · LLM tooling · 2024</span>
             <span class="card-title">LLM format enforcement</span>
@@ -455,7 +534,7 @@
           </div></div>
         </article>
 
-        <article class="rcard card">
+        <article class="rcard card" data-streaks="assets/streaks/side/mitoweb.png" data-streaks-angle="90">
           <button class="card-head" type="button" aria-expanded="false" aria-controls="sp-2">
             <span class="field">Genomics · Godot 4, WebAssembly · 2026</span>
             <span class="card-title">Mito-Web</span>
@@ -478,7 +557,7 @@
           </div></div>
         </article>
 
-        <article class="rcard card">
+        <article class="rcard card" data-streaks="assets/streaks/side/wikipedia.png" data-streaks-tracks="140">
           <button class="card-head" type="button" aria-expanded="false" aria-controls="sp-3">
             <span class="field">Data engineering · Python, SQLite, Docker · 2024</span>
             <span class="card-title">Wikipedia to SQL</span>
@@ -496,7 +575,7 @@
           </div></div>
         </article>
 
-        <article class="rcard card">
+        <article class="rcard card" data-streaks="assets/streaks/side/bodysim.png">
           <button class="card-head" type="button" aria-expanded="false" aria-controls="sp-4">
             <span class="field">Health · Godot 4, Python, LLMs · 2026 · In progress</span>
             <span class="card-title">BodySim</span>
@@ -527,9 +606,9 @@
 
 
   <!-- ── Education & skills ────────────────────────────────────────── -->
-  <section id="education">
+  <section id="education" data-streaks="assets/streaks/cap.png" data-streaks-angle="12">
     <div class="wrap">
-      <h2>Education</h2>
+      <h2 data-streaks-top>Education</h2>
       <div class="entry">
         <div class="entry-head"><h3>M.S. Computer Science</h3><span class="when">May 2026</span></div>
         <div class="where">California State University, Fullerton</div>
@@ -710,5 +789,7 @@
   }
   document.querySelectorAll(".flow.floating-cards").forEach(floatingCards);
 </script>
+<script src="assets/smooth-scroll.js" defer></script>
+<script type="module" src="assets/streaks.js"></script>
 </body>
 </html>
