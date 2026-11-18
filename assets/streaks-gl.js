@@ -82,6 +82,9 @@ export function createGLRenderer(container, version) {
     prog = gl.createProgram();
     gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERTEX));
     gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAGMENT));
+    // Slot 0 must be a per-vertex attribute: some drivers draw nothing when
+    // attribute 0 is instanced.
+    gl.bindAttribLocation(prog, 0, "aCorner");
     gl.linkProgram(prog);
     if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
     loc = {};
@@ -101,13 +104,28 @@ export function createGLRenderer(container, version) {
 
   try { init(); } catch (e) { return null; }
 
+  // Self-test: draw one streak across a tiny canvas and read it back. Some
+  // drivers create a context that accepts every call yet draws nothing; then
+  // the caller falls back to the next tier instead of showing a blank page.
+  function selfTest() {
+    canvas.width = canvas.height = 8;
+    const id = "__test";
+    api.setPicture(id, { count: 1, key: [0, 0, 0], vel: [1, 0, 0], size: [2, 1], col: [1, 1, 1] });
+    const I = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+    api.render({ viewProj: I, cam: [0, 0, 5], pixel: 0.0001, pictures: [{ id, clock: 0 }] });
+    const px = new Uint8Array(4);
+    gl.readPixels(4, 4, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    const p = pictures.get(id);
+    if (p && p.buffer) gl.deleteBuffer(p.buffer);
+    pictures.delete(id);
+    return gl.getError() === gl.NO_ERROR && px[0] + px[1] + px[2] > 30;
+  }
+
   canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); lost = true; });
   canvas.addEventListener("webglcontextrestored", () => {
     try { init(); lost = false; } catch (e) { /* stays blank; the page still works */ }
   });
-  container.appendChild(canvas);
-
-  return {
+  const api = {
     tier: version === 2 ? "gl2" : "gl1",
     canvas,
     pixelRatio: Math.min(window.devicePixelRatio || 1, 1.75),
@@ -128,6 +146,9 @@ export function createGLRenderer(container, version) {
     },
 
     resize(w, h) {
+      // Stay within the GPU's limits (large monitors at high pixel ratios).
+      const max = gl.getParameter(gl.MAX_VIEWPORT_DIMS) || [4096, 4096];
+      this.pixelRatio = Math.min(Math.min(window.devicePixelRatio || 1, 1.75), max[0] / w, max[1] / h);
       canvas.width = Math.round(w * this.pixelRatio);
       canvas.height = Math.round(h * this.pixelRatio);
       canvas.style.width = w + "px";
@@ -136,7 +157,7 @@ export function createGLRenderer(container, version) {
 
     render(f) {
       if (lost) return;
-      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.disable(gl.DEPTH_TEST);
@@ -167,4 +188,7 @@ export function createGLRenderer(container, version) {
       }
     },
   };
+  if (!selfTest()) return null;
+  container.appendChild(canvas);
+  return api;
 }
