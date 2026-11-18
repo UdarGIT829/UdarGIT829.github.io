@@ -47,7 +47,11 @@ void main() {
   float c = 1.0 / ${HALO.toFixed(1)};
   float core = 1.0 - smoothstep(c * 0.55, c * 1.1, y);
   float halo = exp(-y * y * 9.0) * 0.16;             // the bloom haze
-  gl_FragColor = vec4(vColor * (core + halo), 0.0);  // add light, leave alpha at 0
+  vec3 light = vColor * (core + halo);
+  // Valid premultiplied output (alpha >= every colour channel): some
+  // compositors (seen on Intel/Mesa under X11) drop pixels whose alpha is 0,
+  // which made the whole backdrop invisible there.
+  gl_FragColor = vec4(light, max(light.r, max(light.g, light.b)));
 }`;
 
 export function createGLRenderer(container, version) {
@@ -164,7 +168,7 @@ export function createGLRenderer(container, version) {
       gl.disable(gl.CULL_FACE);
       gl.enable(gl.BLEND);
       gl.blendEquation(gl.FUNC_ADD);
-      gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ZERO, gl.ONE);
+      gl.blendFuncSeparate(gl.ONE, gl.ONE, gl.ONE, gl.ONE);   // light adds up; so does its alpha
       gl.useProgram(prog);
       gl.uniformMatrix4fv(loc.uViewProj, false, f.viewProj);
       gl.uniform3f(loc.uCam, f.cam[0], f.cam[1], f.cam[2]);
