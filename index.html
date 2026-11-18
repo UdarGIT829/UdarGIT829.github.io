@@ -74,20 +74,6 @@
   .related { margin-top: 12px; font-size: 15px; }
   .related a { margin-right: 14px; }
 
-  /* Experience: a staircase of collapsed cards, each centred on one of
-     three vertical centre lines (23%, 50%, 77%). Clicking a card slides
-     it to full width and opens its details. */
-  .hint { font-size: 15px; margin: -14px 0 22px; max-width: 760px; }
-  .stairs .card {
-    width: 34%; margin-bottom: 18px;
-    border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
-    transition: width .45s ease, margin-left .45s ease, box-shadow .2s ease;
-  }
-  .stairs .card:nth-of-type(3n+1) { margin-left: 6%; }
-  .stairs .card:nth-of-type(3n+2) { margin-left: 33%; }
-  .stairs .card:nth-of-type(3n)   { margin-left: 60%; }
-  .stairs .card.open { width: 100%; margin-left: 0; box-shadow: 0 6px 24px rgba(20,30,50,.08); }
-  .stairs .card:hover { box-shadow: 0 4px 16px rgba(20,30,50,.08); }
 
   .card-head {
     all: unset; box-sizing: border-box; cursor: pointer; display: grid;
@@ -176,7 +162,6 @@
     header.menu-open nav a { margin: 0; padding: 12px 0; border-top: 1px solid var(--line); font-size: 14px; }
     header.menu-open nav a:first-child { border-top: 0; }
     .highlights { grid-template-columns: 1fr; }
-    .stairs .card { width: auto; margin-left: 0 !important; }
     .skills { grid-template-columns: 1fr; gap: 2px; }
     .skills dd { margin-bottom: 10px; }
   }
@@ -241,14 +226,35 @@
   h4, .rcard h5 { font-family: var(--display); letter-spacing: .18em; color: var(--accent); }
   .when, .where { color: var(--muted); }
 
+  /* Experience: one full-width row per role, key outcomes always visible. */
+  .roles { margin-top: 26px; }
+  .role { padding: 24px 0 22px; border-top: 1px solid var(--line); }
+  .role:last-child { border-bottom: 1px solid var(--line); }
+  .role-head { display: grid; grid-template-columns: 1fr auto; gap: 2px 24px; align-items: baseline; }
+  .role-head h3 { margin: 0; font-size: 19px; color: #f2ecdf; }
+  .role-head .when { font-size: 14px; white-space: nowrap; }
+  .role-head .where { grid-column: 1 / -1; font-size: 14.5px; }
+  .role-key { margin: 12px 0 0; padding-left: 20px; }
+  .role-key li { margin: 6px 0; font-size: 16px; line-height: 1.55; color: var(--ink); }
+  .role-more { margin-top: 10px; }
+  .role-more summary { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; list-style: none;
+                       font: 500 12px var(--display); letter-spacing: .18em; text-transform: uppercase; color: var(--accent); }
+  .role-more summary::-webkit-details-marker { display: none; }
+  .role-more summary::after { content: ""; width: 7px; height: 7px; border: solid var(--accent); border-width: 0 1.5px 1.5px 0;
+                              transform: rotate(45deg) translateY(-2px); transition: transform .2s ease; }
+  .role-more[open] summary::after { transform: rotate(-135deg) translateY(-2px); }
+  .role-more > :not(summary) { font-size: 15px; }
+  .role-more h4 { margin: 16px 0 4px; }
+  @media (max-width: 620px) { .role-head { grid-template-columns: 1fr; } }
+
   .btn { font: 400 13px var(--display); letter-spacing: .2em; text-transform: uppercase; color: var(--ink);
          border-color: rgba(231, 220, 192, .35); background: transparent; border-radius: 2px; }
   .btn:hover { background: rgba(231, 220, 192, .08); }
   .btn.primary { background: var(--accent); border-color: var(--accent); color: #0c151c; }
 
-  .stairs .card, .rcard, .pubs .pubcard { background: var(--panel); border-color: var(--line);
+  .rcard, .pubs .pubcard { background: var(--panel); border-color: var(--line);
          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 3px; }
-  .stairs .card.open, .rcard.floating, .rcard.open { background: rgba(18, 30, 39, .95); border-color: rgba(230, 201, 143, .35);
+  .rcard.floating, .rcard.open { background: rgba(18, 30, 39, .95); border-color: rgba(230, 201, 143, .35);
          box-shadow: 0 18px 50px rgba(0, 0, 0, .45); }
   .chev { border-color: var(--accent); }
   .rcard .field, .pubcard .field { font-family: var(--display); letter-spacing: .16em; color: var(--accent); }
@@ -337,77 +343,78 @@
 
   <!-- ── Experience ────────────────────────────────────────────────── -->
   <section id="experience" data-streaks="assets/streaks/pulse.png" data-streaks-angle="80">
-    <div class="wrap stairs">
+    <div class="wrap">
       <h2 data-streaks-top>Experience</h2>
-      <p class="muted hint">Click a role for details.</p>
+      <div class="roles">
 
-      <div class="entry card">
-        <button class="card-head" type="button" aria-expanded="false" aria-controls="exp-1">
-          <span class="card-title">Lead Coding Instructor</span>
-          <span class="when">Aug 2023 to present</span>
-          <span class="where">Code Ninjas · Fullerton, CA</span>
-          <span class="tagline">Teaching kids to code, and building the attendance analytics app the dojo runs on.</span>
-          <span class="chev" aria-hidden="true"></span>
-        </button>
-        <div class="card-body" id="exp-1"><div class="card-inner">
-        <ul>
-          <li>Teach JavaScript, C#, Unity and block coding to students ages 6 to 14, and give guided demonstrations of 3D modeling tools.</li>
-          <li>Explain each student's progress to parents and management in plain language.</li>
-          <li>Built and maintain an <strong>Attendance &amp; Student Focus Manager</strong>: a cross-platform desktop app that combines attendance records, weekly analytics and Discord-based student conversations, with per-student summary stats, an arrival heat map and a likelihood-of-arrival estimate.</li>
-          <li>Wrote a static, fully local web guide to building usable 3D assets for game development.</li>
-        </ul>
-        <div class="related">Related: <a href="https://github.com/UdarGIT829/Dojo-Admin-Dashboard">Dojo-Admin-Dashboard</a><a href="https://github.com/UdarGIT829/3D-Modeling-for-GameDev-BuildGuide">3D modeling build guide</a></div>
-        </div></div>
-      </div>
+        <article class="role">
+          <div class="role-head">
+            <h3>Lead Coding Instructor</h3>
+            <span class="when">Aug 2023 to present</span>
+            <span class="where">Code Ninjas · Fullerton, CA</span>
+          </div>
+          <ul class="role-key">
+            <li>Built and maintain the attendance and student-focus app the dojo runs on: attendance records, weekly analytics, an arrival heat map and a likelihood-of-arrival estimate.</li>
+            <li>Teach JavaScript, C#, Unity and block coding to students ages 6 to 14, and explain each student's progress to parents and management in plain language.</li>
+          </ul>
+          <details class="role-more">
+            <summary>More detail</summary>
+            <ul>
+              <li>The app is a cross-platform desktop tool that combines attendance records, weekly analytics and Discord-based student conversations, with per-student summary stats.</li>
+              <li>Give guided demonstrations of 3D modeling tools, and wrote a static, fully local web guide to building usable 3D assets for game development.</li>
+            </ul>
+            <div class="related">Related: <a href="https://github.com/UdarGIT829/Dojo-Admin-Dashboard">Dojo-Admin-Dashboard</a><a href="https://github.com/UdarGIT829/3D-Modeling-for-GameDev-BuildGuide">3D modeling build guide</a></div>
+          </details>
+        </article>
 
-      <div class="entry card">
-        <button class="card-head" type="button" aria-expanded="false" aria-controls="exp-2">
-          <span class="card-title">Associate Data Coordinator (contract)</span>
-          <span class="when">Jun 2022 to Dec 2022</span>
-          <span class="where">Edwards Lifesciences · Irvine, CA</span>
-          <span class="tagline">Clinical-trial data validation and query resolution in Medidata RAVE.</span>
-          <span class="chev" aria-hidden="true"></span>
-        </button>
-        <div class="card-body" id="exp-2"><div class="card-inner">
-        <ul>
-          <li>Worked with the Data Validation and Biostatistics teams to validate and process database updates for clinical trial analysis.</li>
-          <li>Resolved data queries in Medidata RAVE EDC.</li>
-          <li>Performed manual data reviews and database specification QC with validated Excel workflows (VLOOKUP, FILTER, PivotTables) in a regulated environment.</li>
-        </ul>
-        </div></div>
-      </div>
+        <article class="role">
+          <div class="role-head">
+            <h3>Associate Data Coordinator (contract)</h3>
+            <span class="when">Jun 2022 to Dec 2022</span>
+            <span class="where">Edwards Lifesciences · Irvine, CA</span>
+          </div>
+          <ul class="role-key">
+            <li>Validated and processed clinical-trial database updates with the Data Validation and Biostatistics teams.</li>
+            <li>Resolved data queries in Medidata RAVE EDC.</li>
+            <li>Reviewed data and QC'd database specifications with validated Excel workflows (VLOOKUP, FILTER, PivotTables) in a regulated environment.</li>
+          </ul>
+        </article>
 
-      <div class="entry card">
-        <button class="card-head" type="button" aria-expanded="false" aria-controls="exp-3">
-          <span class="card-title">Lead Clinical Data Manager &amp; Clinical Research Associate</span>
-          <span class="when">Jan 2021 to Jun 2022</span>
-          <span class="where">GenomeAdvisors · La Mirada, CA</span>
-          <span class="tagline">Took a medical device trial from paper to electronic data capture, through to FDA submission.</span>
-          <span class="chev" aria-hidden="true"></span>
-        </button>
-        <div class="card-body" id="exp-3"><div class="card-inner">
-        <p class="lead">I was in charge of the data for a medical device clinical trial, from its paper-based start through to the FDA submission: I wrote the Data Management Plan and owned the electronic data capture (EDC) system and storage.</p>
-        <h4>From paper to electronic data capture</h4>
-        <p class="lead">The trial began on paper under an Emergency Use Authorization. I led its transition to electronic data capture mid-trial, so data reached the study team as soon as sites entered it.</p>
-        <ul>
-          <li>Built the electronic case report forms in Jotform and automated the flow of submissions into Azure storage.</li>
-          <li>Configured both platforms to meet HIPAA and FDA requirements for electronic records, and documented the migration strategy.</li>
-          <li>Designed the Azure lake-storage architecture, with fine-grained access through Azure Active Directory and tamper-evident audit trails to meet FDA requirements.</li>
-          <li>Automated nightly data-validation jobs on Azure and wired them into a CI pipeline that blocked promotion of data when integrity checks failed.</li>
-        </ul>
-        <h4>Data management</h4>
-        <ul>
-          <li>Wrote the Data Management Plan, including data and cybersecurity for a federal government (NIH) project, and designed the Trial Master File (TMF).</li>
-          <li>Defined the Document Transfer Specification (DTS) for CRF updates from trial sites, and built HIPAA-validated workflows for CRF submission and aggregation.</li>
-          <li>Wrote R and Python scripts for clinical data analysis, and collaborated with biostatisticians on data reports.</li>
-        </ul>
-        <h4>Clinical operations</h4>
-        <ul>
-          <li>Conducted site qualification, initiation, monitoring and close-out visits under ICH-GCP and CRO SOPs.</li>
-          <li>Verified informed-consent procedures and protocol adherence, and documented protocol deviations and unscheduled events.</li>
-          <li>Worked directly with site staff and principal investigators on training, monitoring, adverse events and amendments; supported FDA regulatory submissions and responses to audit findings.</li>
-        </ul>
-        </div></div>
+        <article class="role">
+          <div class="role-head">
+            <h3>Lead Clinical Data Manager &amp; Clinical Research Associate</h3>
+            <span class="when">Jan 2021 to Jun 2022</span>
+            <span class="where">GenomeAdvisors · La Mirada, CA</span>
+          </div>
+          <ul class="role-key">
+            <li>Owned the data for a medical device clinical trial from its paper-based start through to FDA submission: wrote the Data Management Plan and ran the electronic data capture (EDC) system and storage.</li>
+            <li>Led the move from paper to electronic data capture mid-trial, on Azure storage with access control and tamper-evident audit trails that met FDA requirements.</li>
+            <li>Automated nightly data-validation jobs on Azure, wired into a CI pipeline that blocked data that failed integrity checks.</li>
+          </ul>
+          <details class="role-more">
+            <summary>More detail</summary>
+            <p class="lead">The trial began on paper under an Emergency Use Authorization; moving it to electronic capture meant data reached the study team as soon as sites entered it.</p>
+            <h4>From paper to electronic data capture</h4>
+            <ul>
+              <li>Built the electronic case report forms in Jotform and automated the flow of submissions into Azure storage.</li>
+              <li>Configured both platforms to meet HIPAA and FDA requirements for electronic records, and documented the migration strategy.</li>
+              <li>Designed the Azure lake-storage architecture, with fine-grained access through Azure Active Directory.</li>
+            </ul>
+            <h4>Data management</h4>
+            <ul>
+              <li>Wrote the Data Management Plan, including data and cybersecurity for a federal government (NIH) project, and designed the Trial Master File (TMF).</li>
+              <li>Defined the Document Transfer Specification (DTS) for CRF updates from trial sites, and built HIPAA-validated workflows for CRF submission and aggregation.</li>
+              <li>Wrote R and Python scripts for clinical data analysis, and collaborated with biostatisticians on data reports.</li>
+            </ul>
+            <h4>Clinical operations</h4>
+            <ul>
+              <li>Conducted site qualification, initiation, monitoring and close-out visits under ICH-GCP and CRO SOPs.</li>
+              <li>Verified informed-consent procedures and protocol adherence, and documented protocol deviations and unscheduled events.</li>
+              <li>Worked directly with site staff and principal investigators on training, monitoring, adverse events and amendments; supported FDA regulatory submissions and responses to audit findings.</li>
+            </ul>
+          </details>
+        </article>
+
       </div>
     </div>
   </section>
@@ -688,14 +695,6 @@
     document.addEventListener("click", function (e) { if (!header.contains(e.target)) set(false); });
   })();
 
-  // Experience cards: open in place (the staircase handles the motion).
-  document.querySelectorAll(".stairs .card-head").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      var card = btn.closest(".card");
-      var open = card.classList.toggle("open");
-      btn.setAttribute("aria-expanded", open ? "true" : "false");
-    });
-  });
 
   // Floating cards (Research, Side projects): on wide screens every opened card floats to the same
   // focus point, centred and just below the titles of the first row. A
