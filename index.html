@@ -11,7 +11,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap">
-<link rel="modulepreload" href="assets/vendor/three.module.min.js">
+<link rel="modulepreload" href="assets/streaks-gl.js">
+<link rel="modulepreload" href="assets/streaks-2d.js">
 <style>
   /* Deliberately plain first draft. All of the look lives in these
      variables and the rules below, so a visual language can be dropped
@@ -205,7 +206,7 @@
   #streaks { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
   #streaks canvas { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity 1.2s ease; }
   #streaks.live canvas { opacity: 1; }
-  #streaks.narrow.live canvas { opacity: .3; }
+  #streaks.narrow.live canvas { opacity: .55; }
   @media (min-width: 1000px) {
     #streaks canvas { -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,.28) 0, rgba(0,0,0,.28) 50%, #000 64%);
                       mask-image: linear-gradient(to right, rgba(0,0,0,.28) 0, rgba(0,0,0,.28) 50%, #000 64%); }

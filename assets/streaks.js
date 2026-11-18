@@ -18,9 +18,14 @@
 //
 // The camera sits exactly at a viewpoint while you read a section, flies to
 // the next between sections, and flies sideways to a card's picture while the
-// card is open. #streaks is removed if WebGL is unavailable.
+// card is open.
+//
+// Renderers, best first: WebGL 2, WebGL 1 (assets/streaks-gl.js), then Canvas
+// 2D (assets/streaks-2d.js) where WebGL is missing or software-only, so it
+// shows on every device. ?streaks=gl2|gl1|2d forces one (for testing).
 
-import * as THREE from "./vendor/three.module.min.js";
+import { createGLRenderer } from "./streaks-gl.js";
+import { create2DRenderer } from "./streaks-2d.js";
 
 // ── World layout (units as in the Blender file) ────────────────────────────
 const DIST = 60;              // viewpoint -> image plane
@@ -30,7 +35,10 @@ const BRANCH_RADIUS = 80;     // cards sit on an arc this far from their section
 const BRANCH_STEP_DEG = 30;
 const STEP_SECONDS = 3;       // clock distance between neighbouring pictures
 const PICTURE_HEIGHT = 0.62;  // fraction of the view height a picture fills
-const TINT = new THREE.Color("#f2d6a2");
+// The gold tint, in linear values (as three.js's Color stored it), so the
+// look is unchanged.
+const TINT = [0xf2, 0xd6, 0xa2].map((c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+const DEG = Math.PI / 180;
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const small = Math.min(window.innerWidth, window.innerHeight) < 700;
 
@@ -60,70 +68,20 @@ const BRANCH_DEFAULTS = { tracks: 120 };
 
 // ── Renderer ────────────────────────────────────────────────────────────────
 const container = document.getElementById("streaks");
-let renderer;
-try {
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
-} catch (e) {
-  container.remove();
-  throw e;
+const forced = new URLSearchParams(location.search).get("streaks");
+function pickRenderer() {
+  const order = forced ? [forced] : ["gl2", "gl1", "2d"];
+  for (const tier of order) {
+    const r = tier === "gl2" ? createGLRenderer(container, 2) : tier === "gl1" ? createGLRenderer(container, 1)
+            : tier === "2d" ? create2DRenderer(container) : null;
+    if (r) return r;
+  }
+  return null;
 }
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
-renderer.setClearColor(0x000000, 0);
-container.appendChild(renderer.domElement);
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(30, 1, 0.5, 2000);
-
-// One instanced ribbon per bullet. Its position is key + velocity * clock,
-// all on the GPU; the CPU only sets each picture's clock.
-const ribbon = new THREE.PlaneGeometry(1, 1);
-const HALO = 4.0;             // ribbon width / core width (room for the glow)
-function material() {
-  return new THREE.ShaderMaterial({
-    // Pure additive light: add colour, leave alpha at 0, so the (premultiplied)
-    // canvas only ever brightens the page behind it.
-    transparent: true, depthWrite: false, depthTest: false, side: THREE.DoubleSide,
-    blending: THREE.CustomBlending, blendEquation: THREE.AddEquation,
-    blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor, blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor,
-    uniforms: { uClock: { value: 0 }, uPixel: { value: 0.001 }, uFade: { value: 1 } },
-    vertexShader: `
-      attribute vec3 aKey;
-      attribute vec3 aVel;
-      attribute vec2 aSize;      // length, thickness
-      attribute vec3 aColor;
-      uniform float uClock;
-      uniform float uPixel;      // world size of one pixel at distance 1
-      varying vec2 vUv;
-      varying vec3 vColor;
-      varying float vCore;
-      void main() {
-        vec3 pos = aKey + aVel * uClock;
-        vec3 dir = normalize(aVel);
-        vec3 toCam = cameraPosition - pos;
-        float dist = length(toCam);
-        vec3 side = normalize(cross(dir, toCam / dist));
-        float minWidth = dist * uPixel * 1.3;            // never thinner than ~1px (no shimmer)
-        float core = max(aSize.y, minWidth);
-        float energy = aSize.y / core;                    // thin far ones: dimmer, not aliased
-        float nearFade = smoothstep(2.0, 9.0, dist);      // other pictures' tracks passing the camera
-        vec3 world = pos + dir * position.x * aSize.x + side * position.y * core * ${HALO.toFixed(1)};
-        vUv = uv;
-        vCore = 1.0 / ${HALO.toFixed(1)};
-        vColor = aColor * energy * nearFade;
-        gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.0);
-      }`,
-    fragmentShader: `
-      uniform float uFade;
-      varying vec2 vUv;
-      varying vec3 vColor;
-      varying float vCore;
-      void main() {
-        float y = abs(vUv.y - 0.5) * 2.0;                 // 0 centre, 1 edge of the halo
-        float core = 1.0 - smoothstep(vCore * 0.55, vCore * 1.1, y);
-        float halo = exp(-y * y * 9.0) * 0.16;            // the bloom haze
-        gl_FragColor = vec4(vColor * (core + halo) * uFade, 0.0);
-      }`,
-  });
-}
+const renderer = pickRenderer();
+// The 2D tier draws on the CPU: fewer, slightly thicker bullets (DENSITY), and
+// a frame cap. A governor lowers DENSITY further if it still can't keep up.
+let DENSITY = renderer && renderer.tier === "2d" ? 0.6 : 1;
 
 // ── Noise and randomness (deterministic per picture) ───────────────────────
 function rng(seed) {
@@ -156,6 +114,7 @@ function fbm(x, y, z, octaves = 4, rough = 0.6) {      // ~0..1, centred near 0.
   for (let o = 0; o < octaves; o++) { sum += valueNoise(x * f, y * f, z * f) * amp; norm += amp; amp *= rough; f *= 2; }
   return sum / norm;
 }
+const normalize = (v) => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
 const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 // ── Pictures from the page ──────────────────────────────────────────────────
@@ -168,6 +127,12 @@ function options(el, branch) {
     o[name] = typeof DEFAULTS[name] === "boolean" ? value !== "false" : parseFloat(value);
   }
   if (small) { o.tracks = Math.round(o.tracks * 0.7); o.dashes = Math.round(o.dashes * 0.7); o.ambient = Math.round(o.ambient * 0.6); }
+  if (DENSITY < 1) {
+    o.tracks = Math.max(1, Math.round(o.tracks * DENSITY));
+    o.dashes = Math.max(1, Math.round(o.dashes * DENSITY));
+    o.ambient = Math.round(o.ambient * DENSITY);
+    o.thickness /= Math.sqrt(DENSITY);
+  }
   return o;
 }
 
@@ -197,7 +162,7 @@ function loadPixels(src) {
 function buildPicture(px, o, C, seed) {
   const r = rng(seed);
   const D = Math.max(1, o.dashes | 0), T = Math.max(0, o.tracks | 0), A = Math.max(0, o.ambient | 0);
-  const angle = THREE.MathUtils.degToRad(o.angle);
+  const angle = o.angle * DEG;
   const ca = Math.cos(angle), sa = Math.sin(angle);
   const span = 1 + 2 * o.overhang;
   const sign = seed % 2 ? -1 : 1;
@@ -207,9 +172,10 @@ function buildPicture(px, o, C, seed) {
     const i = ((Math.floor((1 - v) * px.N) * px.N) + Math.floor(u * px.N)) * 4;
     return [px.data[i] / 255, px.data[i + 1] / 255, px.data[i + 2] / 255];
   };
-  const planeX = (u) => C.x - HALF + 2 * HALF * u, planeY = (v) => C.y - HALF + 2 * HALF * v, planeZ = C.z - DIST;
+  const [Cx, Cy, Cz] = C;
+  const planeX = (u) => Cx - HALF + 2 * HALF * u, planeY = (v) => Cy - HALF + 2 * HALF * v, planeZ = Cz - DIST;
   const push = (k, v, len, th, c) => { key.push(k[0], k[1], k[2]); vel.push(v[0], v[1], v[2]); size.push(len, th); col.push(c[0], c[1], c[2]); };
-  const tint = (b) => [TINT.r * b, TINT.g * b, TINT.b * b];
+  const tint = (b) => [TINT[0] * b, TINT[1] * b, TINT[2] * b];
   const noiseW = (seed % 97) * 7.3;
 
   // Picture tracks.
@@ -238,44 +204,34 @@ function buildPicture(px, o, C, seed) {
       const b = Math.max(lum * gate * flick, o.trackglow);
       const colour = o.colour && lit ? c.map((ch) => Math.max(ch * gate * flick, o.trackglow) * 1.15) : tint(b);
       const P = [planeX(u), planeY(w), planeZ];
-      push([C.x + (P[0] - C.x) * depth, C.y + (P[1] - C.y) * depth, C.z + (P[2] - C.z) * depth], v, len, o.thickness * depth, colour);
+      push([Cx + (P[0] - Cx) * depth, Cy + (P[1] - Cy) * depth, Cz + (P[2] - Cz) * depth], v, len, o.thickness * depth, colour);
     }
   }
 
   // Ambient tracks: long, faint, roughly along the picture tracks.
-  const flow = new THREE.Vector3(-sa + 0.25 * sign, ca, 0).normalize();
+  const flow = normalize([-sa + 0.25 * sign, ca, 0]);
   for (let a = 0; a < A; a++) {
     const u = -o.ambientspread + (1 + 2 * o.ambientspread) * r();
     const w = -o.ambientspread + (1 + 2 * o.ambientspread) * r();
     const depth = o.near + (o.far * 1.4 - o.near) * r();
-    const centre = [C.x + (planeX(u) - C.x) * depth, C.y + (planeY(w) - C.y) * depth, C.z + (planeZ - C.z) * depth];
-    const d = new THREE.Vector3(flow.x + (r() * 2 - 1) * o.flowspread, flow.y + (r() * 2 - 1) * o.flowspread, (r() * 2 - 1) * o.flowspread).normalize();
+    const centre = [Cx + (planeX(u) - Cx) * depth, Cy + (planeY(w) - Cy) * depth, Cz + (planeZ - Cz) * depth];
+    const [dx, dy, dz] = normalize([flow[0] + (r() * 2 - 1) * o.flowspread, flow[1] + (r() * 2 - 1) * o.flowspread, (r() * 2 - 1) * o.flowspread]);
     const speed = o.speed * (0.8 + 1.2 * r());
     const glow = o.ambientglow * (0.1 + 0.9 * r());
     for (let j = 0; j < D; j++) {
       if (r() >= o.ambientdensity) continue;
       const s = ((j + 0.5) / D - 0.5) * o.ambientlength;
-      push([centre[0] + d.x * s, centre[1] + d.y * s, centre[2] + d.z * s], [d.x * speed, d.y * speed, d.z * speed],
+      push([centre[0] + dx * s, centre[1] + dy * s, centre[2] + dz * s], [dx * speed, dy * speed, dz * speed],
            o.ambientlength / D * o.fill, o.ambientthickness, tint(glow * (1 - o.flicker * r())));
     }
   }
 
-  const geo = new THREE.InstancedBufferGeometry();
-  // Own copies of the ribbon (tiny): disposing a rebuilt picture must not free
-  // buffers that the other pictures still draw with.
-  geo.setIndex(ribbon.index.clone());
-  geo.setAttribute("position", ribbon.getAttribute("position").clone());
-  geo.setAttribute("uv", ribbon.getAttribute("uv").clone());
-  geo.setAttribute("aKey", new THREE.InstancedBufferAttribute(new Float32Array(key), 3));
-  geo.setAttribute("aVel", new THREE.InstancedBufferAttribute(new Float32Array(vel), 3));
-  geo.setAttribute("aSize", new THREE.InstancedBufferAttribute(new Float32Array(size), 2));
-  geo.setAttribute("aColor", new THREE.InstancedBufferAttribute(new Float32Array(col), 3));
-  geo.instanceCount = key.length / 3;
-  return geo;
+  return { key: new Float32Array(key), vel: new Float32Array(vel), size: new Float32Array(size),
+           col: new Float32Array(col), count: key.length / 3 };
 }
 
 // ── Keypoints and branches ──────────────────────────────────────────────────
-const pictures = [];          // { el, branch, hub, index, C, mesh, open, blend }
+const pictures = [];          // { id, el, branch, hubIndex, C: [x, y, z], built, open, blend, weight }
 const keypoints = [];
 
 function collect() {
@@ -286,8 +242,8 @@ function collect() {
   }
   keypoints.forEach((kp, k) => {
     const side = k % 2 ? 6 : -6;
-    kp.C = new THREE.Vector3(side, -DROP_Y * k, -DROP_Z * k);
-    kp.picture = { el: kp.el, branch: false, hubIndex: k, C: kp.C, seed: k + 1 };
+    kp.C = [side, -DROP_Y * k, -DROP_Z * k];
+    kp.picture = { id: pictures.length, el: kp.el, branch: false, hubIndex: k, C: kp.C, seed: k + 1 };
     pictures.push(kp.picture);
   });
   for (const el of all) {
@@ -301,9 +257,9 @@ function collect() {
     const base = k % 2 ? 180 : 0;                          // alternate sides so neighbours never overlap
     kp.branches.forEach((el, i) => {
       const deg = (n - 1) / 2 * BRANCH_STEP_DEG - i * BRANCH_STEP_DEG;    // first card at the top
-      const theta = THREE.MathUtils.degToRad(base ? 180 - deg : deg);
-      const C = new THREE.Vector3(kp.C.x + BRANCH_RADIUS * Math.cos(theta), kp.C.y + BRANCH_RADIUS * Math.sin(theta), kp.C.z);
-      const pic = { el, branch: true, hubIndex: k, C, seed: 100 + k * 10 + i, blend: 0, open: false };
+      const theta = (base ? 180 - deg : deg) * DEG;
+      const C = [kp.C[0] + BRANCH_RADIUS * Math.cos(theta), kp.C[1] + BRANCH_RADIUS * Math.sin(theta), kp.C[2]];
+      const pic = { id: pictures.length, el, branch: true, hubIndex: k, C, seed: 100 + k * 10 + i, blend: 0, open: false };
       pictures.push(pic);
     });
   });
@@ -313,15 +269,8 @@ async function build(pic) {
   const src = pic.el.dataset.streaks;
   const px = src ? await loadPixels(src) : null;
   const o = options(pic.el, pic.branch);
-  const geo = buildPicture(px, o, pic.C, pic.seed + hash(src || ""));
-  if (pic.mesh) {
-    pic.mesh.geometry.dispose();
-    pic.mesh.geometry = geo;
-  } else {
-    pic.mesh = new THREE.Mesh(geo, material());
-    pic.mesh.frustumCulled = false;
-    scene.add(pic.mesh);
-  }
+  renderer.setPicture(pic.id, buildPicture(px, o, pic.C, pic.seed + hash(src || "")));
+  pic.built = true;
   dirty = true;
 }
 
@@ -387,21 +336,63 @@ function keypointCoordinate(y) {
 }
 
 // ── Camera ──────────────────────────────────────────────────────────────────
-let wide = true, dirty = true;
+// Same maths as the three.js camera this replaced: a perspective projection
+// with a lens shift (wide screens put the picture right of the text), looking
+// down -z, then the wobble's yaw, pitch and roll in the camera's own frame.
+const NEAR = 0.5, FAR = 2000;
+let wide = true, dirty = true, fov = 30, pixel = 0.001;
+let projection = new Float32Array(16);
+const camera = { position: [0, 0, 0] };
+
+function perspective(w, h, shiftX) {
+  const aspect = w / h;
+  let top = NEAR * Math.tan(fov * DEG / 2), height = 2 * top, width = aspect * height, left = -width / 2;
+  left += shiftX * width / w;                     // three's setViewOffset(w, h, shiftX, 0, w, h)
+  const right = left + width, bottom = top - height;
+  const m = new Float32Array(16);
+  m[0] = 2 * NEAR / (right - left);
+  m[5] = 2 * NEAR / (top - bottom);
+  m[8] = (right + left) / (right - left);
+  m[9] = (top + bottom) / (top - bottom);
+  m[10] = -(FAR + NEAR) / (FAR - NEAR);
+  m[11] = -1;
+  m[14] = -2 * FAR * NEAR / (FAR - NEAR);
+  return m;
+}
+
+// View-projection for a camera at p turned by R = Ry(yaw) Rx(pitch) Rz(roll).
+function viewProjection(p, yaw, pitch, roll) {
+  const cy = Math.cos(yaw), sy = Math.sin(yaw), cx = Math.cos(pitch), sx = Math.sin(pitch), cz = Math.cos(roll), sz = Math.sin(roll);
+  // R = Ry * Rx * Rz (row-major 3x3).
+  const R = [
+    [cy * cz + sy * sx * sz, -cy * sz + sy * sx * cz, sy * cx],
+    [cx * sz, cx * cz, -sx],
+    [-sy * cz + cy * sx * sz, sy * sz + cy * sx * cz, cy * cx],
+  ];
+  const v = new Float32Array(16);                 // view = [R^T | -R^T p], column-major
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) v[j * 4 + i] = R[j][i];
+    v[12 + i] = -(R[0][i] * p[0] + R[1][i] * p[1] + R[2][i] * p[2]);
+  }
+  v[15] = 1;
+  const out = new Float32Array(16);
+  for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) {
+    let sum = 0;
+    for (let k = 0; k < 4; k++) sum += projection[k * 4 + r] * v[c * 4 + k];
+    out[c * 4 + r] = sum;
+  }
+  return out;
+}
+
 function resize() {
   const w = window.innerWidth, h = window.innerHeight;
-  renderer.setSize(w, h, false);
-  camera.aspect = w / h;
+  renderer.resize(w, h);
   wide = w >= 1000;
   // Fit the picture: a fixed share of the height, or of the width when narrow.
-  const fit = Math.min(PICTURE_HEIGHT, camera.aspect * 0.85);
-  camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(HALF / DIST / fit));
-  // Wide screens: shift the view (a lens shift) so the picture sits right of the text.
-  if (wide) camera.setViewOffset(w, h, -Math.round(w * 0.27), 0, w, h);
-  else camera.clearViewOffset();
-  camera.updateProjectionMatrix();
-  const pixel = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / (h * renderer.getPixelRatio());
-  for (const p of pictures) if (p.mesh) p.mesh.material.uniforms.uPixel.value = pixel;
+  const fit = Math.min(PICTURE_HEIGHT, (w / h) * 0.85);
+  fov = 2 * Math.atan(HALF / DIST / fit) / DEG;
+  projection = perspective(w, h, wide ? -Math.round(w * 0.27) : 0);
+  pixel = 2 * Math.tan(fov * DEG / 2) / (h * renderer.pixelRatio);
   container.classList.toggle("narrow", !wide);
   dirty = true;
 }
@@ -409,8 +400,9 @@ function resize() {
 // Scroll following: a critically damped spring on the reading line, so the
 // view picks up and settles smoothly however the page jumps (keys, anchors).
 const SPRING = 6;             // rad/s; higher follows more tightly (the page scroll itself is smoothed by smooth-scroll.js)
-let u = readingLine(), uVel = 0, last = performance.now(), lastKey = "", time = 0;
-const position = new THREE.Vector3();
+let u = readingLine(), uVel = 0, last = performance.now(), lastKey = "", time = 0, lastDraw = 0;
+const position = [0, 0, 0];
+const lerp3 = (out, a, b, t) => { for (let i = 0; i < 3; i++) out[i] = a[i] + (b[i] - a[i]) * t; return out; };
 
 // Wobble: a slow, slight sway of the camera's aim, independent of scrolling.
 // Turning the camera about its own position doesn't change which rays line
@@ -441,7 +433,7 @@ function frame(now) {
   // Scroll position between keypoints.
   const k0 = Math.max(0, Math.min(keypoints.length - 1, Math.floor(q)));
   const k1 = Math.min(keypoints.length - 1, k0 + 1);
-  position.lerpVectors(keypoints[k0].C, keypoints[k1].C, q - k0);   // q is already eased
+  lerp3(position, keypoints[k0].C, keypoints[k1].C, q - k0);   // q is already eased
 
   // Open cards pull the camera sideways to their picture's viewpoint.
   let away = 0;
@@ -455,38 +447,57 @@ function frame(now) {
     const near = 1 - smooth(0.45, 0.9, Math.abs(q - p.hubIndex));
     p.weight = smooth(0, 1, p.blend) * near;
     if (p.weight > 0) {
-      position.lerp(p.C, p.weight);               // to the card's own viewpoint, exactly
+      lerp3(position, position, p.C, p.weight);   // to the card's own viewpoint, exactly
       if (p.hubIndex === Math.round(q)) away = Math.max(away, p.weight);
     }
   }
-  camera.position.copy(position);
-  camera.lookAt(position.x, position.y, position.z - 1);
+  camera.position = position.slice();
   const w = wobble(time);
-  camera.rotateY(w.yaw);
-  camera.rotateX(w.pitch);
-  camera.rotateZ(w.roll);
 
   // Clocks: 0 when the camera is at the picture's viewpoint.
-  let key = position.toArray().map((v) => v.toFixed(3)).join() + (WOBBLE ? time.toFixed(2) : "");
+  let key = position.map((v) => v.toFixed(3)).join() + (WOBBLE ? time.toFixed(2) : "");
+  const visible = [];
   for (const p of pictures) {
-    if (!p.mesh) continue;
+    if (!p.built) continue;
     const clock = p.branch ? (1 - p.weight) * STEP_SECONDS : ((q - p.hubIndex) + (p.hubIndex === Math.round(q) ? away : 0)) * STEP_SECONDS;
-    p.mesh.material.uniforms.uClock.value = clock;
-    p.mesh.visible = Math.abs(clock) < STEP_SECONDS * 2.5;          // far from the view: skip
-    key += p.mesh.visible ? clock.toFixed(3) : "-";
+    p.clock = clock;
+    const show = Math.abs(clock) < STEP_SECONDS * 2.5;            // far from the view: skip
+    if (show) visible.push({ id: p.id, clock });
+    key += show ? clock.toFixed(3) : "-";
   }
-  if (key !== lastKey || dirty) {
-    renderer.render(scene, camera);
+  // The 2D tier is capped at ~30 fps while moving (it draws on the CPU).
+  const capped = renderer.tier === "2d" && now - lastDraw < 32;
+  if ((key !== lastKey || dirty) && !capped) {
+    const t0 = performance.now();
+    renderer.render({ viewProj: viewProjection(position, w.yaw, w.pitch, w.roll), cam: position, pixel, pictures: visible });
+    govern(performance.now() - t0);
+    lastDraw = now;
     lastKey = key;
     dirty = false;
   }
   requestAnimationFrame(frame);
 }
 
+// 2D tier only: if drawing keeps taking too long, drop the glow pass, then
+// rebuild every picture with fewer bullets (at most twice).
+const slow = { n: 0, total: 0, steps: 0 };
+function govern(ms) {
+  if (renderer.tier !== "2d" || slow.steps >= 3) return;
+  slow.n++; slow.total += ms;
+  if (slow.n < 45) return;
+  const avg = slow.total / slow.n;
+  slow.n = slow.total = 0;
+  if (avg < 26) return;
+  slow.steps++;
+  if (slow.steps === 1) { renderer.halo = false; dirty = true; return; }
+  DENSITY *= 0.7;
+  Promise.all(pictures.filter((p) => p.built).map(build)).then(resize);
+}
+
 // ── Start, and rebuild on attribute changes ─────────────────────────────────
 collect();
-window.addEventListener("resize", resize);
-if (keypoints.length) {
+if (renderer) window.addEventListener("resize", resize);
+if (renderer && keypoints.length) {
   // Sections first (in order), then cards in the background.
   (async () => {
     for (const p of pictures.filter((x) => !x.branch)) await build(p);
@@ -510,4 +521,5 @@ if (keypoints.length) {
   container.remove();
 }
 
-window.streaks = { reload: () => Promise.all(pictures.map(build)).then(resize), pictures, renderer, camera, scene };
+window.streaks = { tier: renderer ? renderer.tier : "none", reload: () => Promise.all(pictures.map(build)).then(resize), pictures, camera,
+                   get density() { return DENSITY; } };
